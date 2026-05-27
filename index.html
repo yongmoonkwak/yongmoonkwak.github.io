@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>행정체제 개편 통합 진척관리 (인천시·전남광주특별시)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root{color-scheme:light;
+  --pri:#1a56db;--pri-l:#e8effd;--red:#dc2626;--org:#f59e0b;--grn:#16a34a;--teal:#0d9488;--prp:#8b5cf6;--pnk:#ec4899;
+  --g50:#f9fafb;--g100:#f3f4f6;--g200:#e5e7eb;--g300:#d1d5db;--g400:#9ca3af;--g500:#6b7280;--g600:#4b5563;--g700:#374151;--g800:#1f2937;--g900:#111827;
+  --r:12px;--sh:0 1px 3px rgba(0,0,0,.08);
+  --inch:#1a56db;--jg:#0d9488}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;background:var(--g50);color:var(--g800);max-width:520px;margin:0 auto;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+.hd{background:linear-gradient(135deg,#0f2b46,#1a56db);color:#fff;padding:10px 14px 12px;position:sticky;top:0;z-index:100}
+.usr-bar{display:flex;justify-content:space-between;align-items:center;font-size:9px;opacity:.85;margin-bottom:6px}
+.usr-bar .logout{color:#fff;background:rgba(255,255,255,.18);border:none;border-radius:5px;padding:3px 8px;font-size:9px;cursor:pointer;font-family:inherit}
+.hd-t{font-size:14px;font-weight:700;letter-spacing:.3px}
+.hd-s{font-size:9.5px;opacity:.75;margin-top:2px}
+.hd-row{display:flex;gap:6px;margin-top:8px}
+.dd-box{background:rgba(255,255,255,.13);border-radius:8px;padding:6px 8px;text-align:center;flex:1;min-width:0}
+.dd-num{font-size:18px;font-weight:800;letter-spacing:-.5px}
+.dd-lab{font-size:8px;opacity:.7;margin-top:1px}
+.dd-box.inch{background:rgba(96,165,250,.22)}
+.dd-box.jg{background:rgba(45,212,191,.22)}
+
+.pub-notice{background:#fef3c7;color:#92400e;font-size:10px;padding:6px 12px;text-align:center;font-weight:600;border-bottom:1px solid #fcd34d}
+.pub-notice.live{background:#dcfce7;color:#166534;border-bottom-color:#86efac}
+
+.tabs{display:flex;background:#fff;border-bottom:1px solid var(--g200);position:sticky;top:142px;z-index:99}
+.tab{flex:1;text-align:center;padding:9px 0;font-size:10.5px;font-weight:600;color:var(--g400);border-bottom:2.5px solid transparent;cursor:pointer;transition:.2s}
+.tab.on{color:var(--pri);border-bottom-color:var(--pri)}
+.tab.admin-tab{color:var(--red);position:relative}
+.tab.admin-tab::before{content:'🔒';position:absolute;left:6px;font-size:9px;opacity:.6}
+.tab.admin-tab.on{color:var(--red);border-bottom-color:var(--red)}
+
+.sub-tabs{display:flex;background:#fff;border-bottom:1px solid var(--g200);margin-bottom:2px;overflow-x:auto}
+.sub-tab{flex:0 0 auto;padding:8px 12px;font-size:10px;font-weight:600;color:var(--g400);border-bottom:2px solid transparent;cursor:pointer;transition:.2s;background:var(--g50);white-space:nowrap}
+.sub-tab.on{color:var(--teal);border-bottom-color:var(--teal);background:#fff}
+
+.sec{display:none;padding:10px 12px 90px}.sec.on{display:block}
+.cd{background:#fff;border-radius:var(--r);padding:12px;margin-bottom:10px;box-shadow:var(--sh)}
+.cd-t{font-size:10.5px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.cd-t .more{font-size:9px;font-weight:600;color:var(--pri);cursor:pointer;text-transform:none;letter-spacing:0}
+
+/* City cards */
+.city-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.city-card{background:#fff;border-radius:var(--r);padding:10px;box-shadow:var(--sh);border-top:3px solid var(--g300)}
+.city-card.inch{border-top-color:var(--inch)}
+.city-card.jg{border-top-color:var(--jg)}
+.city-card .cc-nm{font-size:12px;font-weight:800;margin-bottom:2px}
+.city-card .cc-sub{font-size:9px;color:var(--g400);margin-bottom:6px}
+.city-card .cc-pct{font-size:26px;font-weight:800;letter-spacing:-1px}
+.city-card .cc-bar{height:4px;background:var(--g200);border-radius:2px;overflow:hidden;margin:4px 0}
+.city-card .cc-fl{height:100%;border-radius:2px;transition:.3s}
+.city-card .cc-meta{display:flex;justify-content:space-between;font-size:8px;color:var(--g500);margin-top:3px}
+
+/* Stats row */
+.st-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.st{background:#fff;border-radius:var(--r);padding:8px;text-align:center;box-shadow:var(--sh)}
+.st-v{font-size:18px;font-weight:800}
+.st-l{font-size:8px;color:var(--g500);margin-top:1px}
+
+/* Tables */
+.tbl{width:100%;border-collapse:collapse;font-size:10px}
+.tbl thead th{background:var(--g50);color:var(--g600);font-weight:700;font-size:9px;padding:6px 4px;border-bottom:2px solid var(--g200);text-align:center;white-space:nowrap}
+.tbl thead th.l{text-align:left}
+.tbl tbody td{padding:6px 4px;border-bottom:1px solid var(--g100);text-align:center;vertical-align:middle}
+.tbl tbody td.l{text-align:left;font-weight:600}
+.tbl tbody tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover{background:var(--g50)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl.compact thead th,.tbl.compact tbody td{padding:4px 3px;font-size:9.5px}
+
+/* Stage progress matrix */
+.stage-cell{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:3px;border-radius:4px;font-size:9px;font-weight:700;color:#fff;cursor:pointer;transition:.15s;line-height:1.2}
+.stage-cell:hover{transform:scale(1.05);box-shadow:0 2px 4px rgba(0,0,0,.15)}
+.stage-cell.s0{background:#94a3b8}
+.stage-cell.s1{background:#fb923c}
+.stage-cell.s2{background:#3b82f6}
+.stage-cell.s3{background:#8b5cf6}
+.stage-cell.s4{background:#ec4899}
+.stage-cell.s5{background:#10b981}
+.stage-pct{font-size:9px;font-weight:800;text-align:center}
+
+/* Stage detail bar */
+.sbar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--g200);margin-top:4px}
+.sbar div{height:100%;transition:.3s}
+
+.badge{font-size:8px;padding:2px 5px;border-radius:3px;font-weight:600;display:inline-block;white-space:nowrap}
+.b-w{background:var(--g100);color:var(--g500)}
+.b-r{background:#dbeafe;color:var(--pri)}
+.b-d{background:#dcfce7;color:var(--grn)}
+.b-i{background:#fee2e2;color:var(--red)}
+.b-o{background:#fef3c7;color:#b45309}
+.b-inch{background:rgba(26,86,219,.12);color:var(--inch)}
+.b-jg{background:rgba(13,148,136,.12);color:var(--jg)}
+
+.ch{position:relative;width:100%;height:200px}
+.ch.h150{height:150px}
+.ch canvas{width:100%!important;height:100%!important}
+
+/* FORMS */
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:6px}
+.chip{flex-shrink:0;padding:5px 10px;border-radius:16px;font-size:10px;font-weight:600;background:var(--g100);color:var(--g600);cursor:pointer;white-space:nowrap;transition:.15s}
+.chip.on{background:var(--pri);color:#fff}
+.chip.on.inch{background:var(--inch)}
+.chip.on.jg{background:var(--jg)}
+.er{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.er.col{align-items:flex-start;flex-direction:column;gap:3px}
+.er.col .el{width:auto}
+.el{font-size:10px;color:var(--g600);width:78px;flex-shrink:0;font-weight:600}
+.ei{flex:1;border:1px solid var(--g200);border-radius:6px;padding:6px 8px;font-size:11px;outline:none;font-family:inherit;background:#fff;width:100%}
+.ei:focus{border-color:var(--pri)}
+.es{flex:1;border:1px solid var(--g200);border-radius:6px;padding:6px 8px;font-size:11px;background:#fff;outline:none;font-family:inherit}
+.sw{flex:1;display:flex;align-items:center;gap:6px}
+.sw input[type=range]{flex:1;-webkit-appearance:none;height:4px;background:var(--g200);border-radius:2px;outline:none}
+.sw input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--pri);cursor:pointer}
+.sv{font-size:11px;font-weight:700;width:30px;text-align:right}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:.15s}
+.bp{background:var(--pri);color:#fff}
+.bo{background:#fff;color:var(--g600);border:1px solid var(--g200)}
+.bs{padding:4px 8px;font-size:9px}
+.bk{width:100%}
+.bd{background:#fee2e2;color:var(--red)}
+.bg{background:var(--grn);color:#fff}
+.bt{background:var(--teal);color:#fff}
+.ib{width:24px;height:24px;border-radius:6px;border:1px solid var(--g200);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--g500)}
+.ib.x:hover{background:#fee2e2;color:var(--red);border-color:#fca5a5}
+.fi{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--g100);font-size:11px}
+.fi:last-child{border-bottom:none}
+.fn{flex:1;font-weight:600}
+.ft{font-size:9px;color:var(--g400);background:var(--g100);padding:1px 5px;border-radius:3px}
+
+/* Stage legend */
+.stg-leg{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;font-size:8.5px}
+.stg-leg .si{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:10px;color:#fff;font-weight:700}
+
+/* MODAL */
+.mo-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:200;justify-content:center;align-items:flex-end}
+.mo-bg.show{display:flex}
+.mo{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;padding:16px;animation:su .3s ease}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mo-bar{width:40px;height:4px;background:var(--g300);border-radius:2px;margin:0 auto 10px}
+.mo-t{font-size:14px;font-weight:700;margin-bottom:10px}
+
+.dp-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.35);z-index:150;justify-content:center;align-items:center}
+.dp-bg.show{display:flex}
+.dp{background:#fff;border-radius:14px;padding:16px;width:92%;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,.18);animation:popIn .25s ease;position:relative}
+@keyframes popIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.dp-close{position:absolute;top:10px;right:12px;font-size:18px;color:var(--g400);cursor:pointer;background:none;border:none;line-height:1}
+.dp-nm{font-size:15px;font-weight:800;margin-bottom:2px}
+.dp-sub{font-size:10px;color:var(--g400);margin-bottom:10px}
+
+/* CALENDAR */
+.cal{user-select:none}
+.cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-hd span{font-size:13px;font-weight:700}
+.cal-nav{width:28px;height:28px;border-radius:50%;border:1px solid var(--g200);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--g600)}
+.cal-nav:active{background:var(--g100)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.cal-dow{font-size:8px;font-weight:700;color:var(--g400);padding:4px 0}
+.cal-day{font-size:11px;padding:6px 0;border-radius:8px;cursor:pointer;position:relative;transition:.15s}
+.cal-day:hover{background:var(--g100)}
+.cal-day.today{font-weight:800;color:var(--pri)}
+.cal-day.sel{background:var(--pri);color:#fff;font-weight:700}
+.cal-day.other{color:var(--g300)}
+.cal-day .dot-row{display:flex;justify-content:center;gap:2px;margin-top:1px;min-height:5px}
+.cal-day .dot-plan{width:4px;height:4px;border-radius:50%;background:var(--pri)}
+.cal-day .dot-done{width:4px;height:4px;border-radius:50%;background:var(--grn)}
+.cal-day .dot-over{width:4px;height:4px;border-radius:50%;background:var(--red)}
+.cal-day .dot-evt{width:4px;height:4px;border-radius:50%;background:var(--prp)}
+.cal-day.sel .dot-plan,.cal-day.sel .dot-done,.cal-day.sel .dot-over,.cal-day.sel .dot-evt{background:rgba(255,255,255,.7)}
+
+/* Task items */
+.tk{padding:10px;border-radius:8px;margin-bottom:6px;border-left:3px solid var(--g300);background:var(--g50);transition:.2s}
+.tk.plan{border-left-color:var(--pri);background:var(--pri-l)}
+.tk.done{border-left-color:var(--grn);background:#f0fdf4}
+.tk.overdue{border-left-color:var(--red);background:#fef2f2}
+.tk.evt{border-left-color:var(--prp);background:#f5f3ff}
+.tk-top{display:flex;align-items:flex-start;gap:6px}
+.tk-chk{width:20px;height:20px;border-radius:50%;border:2px solid var(--g300);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.2s;font-size:11px;color:transparent}
+.tk-chk:hover{border-color:var(--grn)}
+.tk-chk.checked{border-color:var(--grn);background:var(--grn);color:#fff}
+.tk-body{flex:1;min-width:0}
+.tk-title{font-size:12px;font-weight:600;line-height:1.3}
+.tk-title.crossed{text-decoration:line-through;color:var(--g400)}
+.tk-meta{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
+.tk-tag{font-size:8.5px;padding:1px 5px;border-radius:3px;font-weight:600}
+.tk-sys{background:#ede9fe;color:#7c3aed}
+.tk-act{background:#fef3c7;color:#b45309}
+.tk-stg{background:#cffafe;color:#0e7490}
+.tk-date{font-size:9px;color:var(--g400)}
+.tk-note{font-size:10px;color:var(--g500);margin-top:3px;line-height:1.3}
+.tk-actions{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.tk-prog{height:4px;background:var(--g200);border-radius:2px;overflow:hidden;margin-top:4px}
+.tk-prog-f{height:100%;background:var(--pri);border-radius:2px;transition:.3s}
+
+.day-sum{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.ds{background:#fff;border-radius:8px;padding:8px;text-align:center;box-shadow:var(--sh)}
+.ds-v{font-size:18px;font-weight:800}
+.ds-l{font-size:8px;color:var(--g500);margin-top:1px}
+
+.fpill{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
+.pill{padding:3px 8px;border-radius:12px;font-size:9px;font-weight:600;cursor:pointer;transition:.15s;background:var(--g100);color:var(--g600)}
+.pill.on{color:#fff;background:var(--g700)}
+
+/* Issue cards */
+.iss-card{background:#fff;border-radius:var(--r);padding:10px;margin-bottom:6px;box-shadow:var(--sh);border-left:3px solid var(--red)}
+.iss-card.resolved{border-left-color:var(--grn);opacity:.75}
+.iss-hd{display:flex;align-items:flex-start;gap:6px}
+.iss-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;color:#fff}
+.iss-body{flex:1;min-width:0}
+.iss-title{font-size:11px;font-weight:700;line-height:1.3}
+.iss-meta{display:flex;gap:4px;margin-top:3px;flex-wrap:wrap;align-items:center}
+.iss-plan{margin-top:6px;background:var(--g50);border-radius:6px;padding:6px 8px}
+.iss-plan-label{font-size:8px;font-weight:700;color:var(--teal);margin-bottom:2px}
+.iss-plan-text{font-size:10px;color:var(--g600);line-height:1.4}
+.iss-actions{display:flex;gap:3px;margin-top:5px;flex-wrap:wrap}
+
+/* Event card */
+.evt-card{background:#fff;border-radius:var(--r);padding:10px;margin-bottom:6px;box-shadow:var(--sh);border-left:3px solid var(--prp)}
+.evt-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.evt-title{font-size:12px;font-weight:700}
+.evt-dt{font-size:10px;font-weight:700;color:var(--prp);white-space:nowrap}
+.evt-meta{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.evt-desc{font-size:10px;color:var(--g500);margin-top:4px;line-height:1.4}
+
+/* REPORT */
+.rh{text-align:center;padding:12px 0}
+.rh h2{font-size:14px;font-weight:800}
+.rh p{font-size:9px;color:var(--g400);margin-top:3px}
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.rb{background:#fff;border-radius:var(--r);padding:10px;text-align:center;box-shadow:var(--sh)}
+.rb-v{font-size:22px;font-weight:800}
+.rb-l{font-size:8px;color:var(--g500);margin-top:1px}
+
+/* Schedule table cells */
+.sch-tbl input,.sch-tbl select,.sch-tbl textarea{width:100%;border:none;background:transparent;font-size:10px;outline:none;padding:2px 4px;font-family:inherit}
+.sch-tbl input:focus,.sch-tbl select:focus,.sch-tbl textarea:focus{background:var(--g50);border-radius:3px}
+
+/* Doc/file */
+.doc-st{font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600;cursor:pointer;white-space:nowrap}
+.doc-st-none{background:var(--g100);color:var(--g500)}
+.doc-st-wip{background:#fef3c7;color:#b45309}
+.doc-st-review{background:#dbeafe;color:var(--pri)}
+.doc-st-done{background:#dcfce7;color:var(--grn)}
+.doc-st-req{background:#fce7f3;color:#be185d}
+.adm-doc-card{background:#fff;border-radius:var(--r);padding:10px;margin-bottom:8px;box-shadow:var(--sh)}
+
+/* LOGIN */
+.login-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#0f2b46,#1a56db);z-index:9999;display:flex;align-items:center;justify-content:center}
+.login-box{background:#fff;border-radius:16px;padding:28px 24px;width:90%;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:popIn .4s ease}
+.login-logo{text-align:center;margin-bottom:18px}
+.login-logo-icon{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#0f2b46,#1a56db);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:800;margin-bottom:8px}
+.login-logo h2{font-size:14px;font-weight:800;color:var(--g800);line-height:1.3}
+.login-logo p{font-size:10px;color:var(--g400);margin-top:3px}
+.login-field{margin-bottom:12px}
+.login-field label{display:block;font-size:10px;font-weight:600;color:var(--g600);margin-bottom:4px}
+.login-field input{width:100%;border:1.5px solid var(--g200);border-radius:8px;padding:10px 12px;font-size:13px;outline:none;font-family:inherit;transition:.2s}
+.login-field input:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.login-err{font-size:10px;color:var(--red);text-align:center;margin-bottom:8px;min-height:14px}
+.login-btn{width:100%;padding:11px;border:none;border-radius:8px;background:linear-gradient(135deg,#0f2b46,#1a56db);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s}
+.login-btn:hover{opacity:.9}
+.login-btn:active{transform:scale(.98)}
+
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--g800);color:#fff;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:600;opacity:0;transition:.3s;z-index:300;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+::-webkit-scrollbar{height:6px;width:6px}
+::-webkit-scrollbar-thumb{background:var(--g300);border-radius:3px}
+textarea.ei{resize:vertical;min-height:48px;font-family:inherit}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-bg" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">행정</div>
+      <h2>행정체제 개편 통합 진척관리</h2>
+      <p>인천시 · 전남광주특별시</p>
+    </div>
+    <div class="login-field">
+      <label>아이디</label>
+      <input type="text" id="loginId" placeholder="아이디를 입력하세요" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>비밀번호</label>
+      <input type="password" id="loginPw" placeholder="비밀번호를 입력하세요" autocomplete="current-password">
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="login-btn" onclick="doLogin()">로그인</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display:none">
+
+<div class="hd">
+  <div class="usr-bar">
+    <span id="usrInfo">사용자: -</span>
+    <button class="logout" onclick="doLogout()">로그아웃</button>
+  </div>
+  <div class="hd-t">행정체제 개편 통합 진척관리</div>
+  <div class="hd-s">인천시 · 전남광주특별시 (전라남도+광주광역시 통합) · 데이터 전환 진척관리</div>
+  <div class="hd-row">
+    <div class="dd-box"><div class="dd-num" id="hD">D-36</div><div class="dd-lab">개시 7.1 09:00</div></div>
+    <div class="dd-box inch"><div class="dd-num" id="hInch">0%</div><div class="dd-lab">인천시</div></div>
+    <div class="dd-box jg"><div class="dd-num" id="hJg">0%</div><div class="dd-lab">전남광주</div></div>
+    <div class="dd-box"><div class="dd-num" id="hAvg">0%</div><div class="dd-lab">통합 평균</div></div>
+  </div>
+</div>
+
+<div class="pub-notice" id="pubNotice">📢 데이터 전환 완료: 2026-06-30 / 시스템 공식 게시: 2026-07-01 09:00</div>
+
+<div class="tabs" id="mainTabs">
+  <div class="tab on" onclick="go('dash')">대시보드</div>
+  <div class="tab" onclick="go('daily')">일일관리</div>
+  <div class="tab admin-tab" id="tabAdmin" onclick="go('admin')">관리</div>
+  <div class="tab" onclick="go('report')">보고</div>
+</div>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div id="s-dash" class="sec on">
+  <!-- 도시별 카드 -->
+  <div class="city-cards" id="cityCards"></div>
+
+  <!-- 통계 row -->
+  <div class="st-row" id="statRow"></div>
+
+  <!-- 시스템별 6단계 진척 매트릭스 (핵심 표) -->
+  <div class="cd">
+    <div class="cd-t">시스템별 진척 현황 (도시별 단계·진척률)</div>
+    <div class="tbl-wrap">
+      <table class="tbl compact" id="matrixTbl"></table>
+    </div>
+    <div class="stg-leg" id="stgLeg"></div>
+    <div style="font-size:9px;color:var(--g400);margin-top:6px;text-align:center">셀을 탭하면 단계 상세를 확인할 수 있습니다</div>
+  </div>
+
+  <!-- 단계별 분포 차트 -->
+  <div class="cd">
+    <div class="cd-t">단계별 시스템 분포 (도시 비교)</div>
+    <div class="ch h150"><canvas id="stageDistChart"></canvas></div>
+  </div>
+
+  <!-- 도시 비교 차트 -->
+  <div class="cd">
+    <div class="cd-t">시스템별 진척률 비교</div>
+    <div class="ch"><canvas id="cityCmpChart"></canvas></div>
+  </div>
+
+  <!-- 행사·단계별 보고 일정 -->
+  <div class="cd">
+    <div class="cd-t">예정된 행사 · 단계별 보고 <span class="more" onclick="go('admin');setTimeout(()=>goAdminSub('evt'),50)" id="evtMore">관리 →</span></div>
+    <div id="dashEvtList"></div>
+  </div>
+
+  <!-- 추진내용 일정 (preview) -->
+  <div class="cd">
+    <div class="cd-t">추진내용 · 일정 <span class="more" onclick="go('admin');setTimeout(()=>goAdminSub('sch'),50)" id="schMore">관리 →</span></div>
+    <div class="tbl-wrap">
+      <table class="tbl compact" id="schPreview"></table>
+    </div>
+  </div>
+
+  <!-- 미결 이슈 -->
+  <div class="cd">
+    <div class="cd-t" id="dashIssTitle">미결 이슈 및 조치계획 <span class="more" onclick="go('admin');setTimeout(()=>goAdminSub('iss'),50)" id="issMore">관리 →</span></div>
+    <div id="dashIssList"></div>
+  </div>
+</div>
+
+<!-- ==================== DAILY ==================== -->
+<div id="s-daily" class="sec">
+  <div class="cd"><div class="cal" id="calArea"></div></div>
+  <div class="day-sum" id="daySumArea"></div>
+  <div class="cd" style="padding:8px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap">
+      <div class="fpill" id="taskFilter"></div>
+      <button class="btn bp bs" id="taskAddBtn" onclick="showAddTask()">+ 할일 등록</button>
+    </div>
+  </div>
+  <div id="taskListArea"></div>
+  <div class="cd">
+    <div class="cd-t">주간 계획 vs 실적</div>
+    <div class="ch"><canvas id="weekChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ==================== ADMIN (관리자 전용) ==================== -->
+<div id="s-admin" class="sec">
+  <div class="sub-tabs" id="adminSubTabs">
+    <div class="sub-tab on" onclick="goAdminSub('sys')">시스템 관리</div>
+    <div class="sub-tab" onclick="goAdminSub('stg')">단계별 진척</div>
+    <div class="sub-tab" onclick="goAdminSub('evt')">행사·보고</div>
+    <div class="sub-tab" onclick="goAdminSub('sch')">추진일정</div>
+    <div class="sub-tab" onclick="goAdminSub('iss')">이슈 관리</div>
+    <div class="sub-tab" onclick="goAdminSub('doc')">산출물</div>
+  </div>
+
+  <!-- 시스템 관리 -->
+  <div id="ad-sys">
+    <div class="cd" style="padding:8px 12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="cd-t" style="margin:0" id="sysMgrTitle">시스템 목록</div>
+        <button class="btn bp bs" onclick="showAddSystem()">+ 시스템 등록</button>
+      </div>
+    </div>
+    <div id="sysMgrList"></div>
+  </div>
+
+  <!-- 단계별 진척 관리 -->
+  <div id="ad-stg" style="display:none">
+    <div class="cd" style="padding:8px 12px">
+      <div class="cd-t" style="margin-bottom:4px">단계별 진척 관리</div>
+      <div style="font-size:10px;color:var(--g500);line-height:1.4">시스템과 도시를 선택한 후 6단계 워크플로(요청→수행계획→수행→결과확인→보고수신→결과보고)의 시작일·종료일·상태를 등록합니다.</div>
+    </div>
+    <div class="cd">
+      <div class="cd-t">도시 선택</div>
+      <div class="chips" id="stgCityChips"></div>
+      <div class="cd-t" style="margin-top:8px">시스템 선택</div>
+      <div class="chips" id="stgSysChips"></div>
+    </div>
+    <div id="stgEditArea"></div>
+  </div>
+
+  <!-- 행사·보고 관리 -->
+  <div id="ad-evt" style="display:none">
+    <div class="cd" style="padding:8px 12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="cd-t" style="margin:0">행사 · 단계별 보고 목록</div>
+        <button class="btn bp bs" onclick="showAddEvt()">+ 행사 등록</button>
+      </div>
+    </div>
+    <div class="cd">
+      <div class="tbl-wrap">
+        <table class="tbl compact" id="evtTbl"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 추진내용 일정 -->
+  <div id="ad-sch" style="display:none">
+    <div class="cd" style="padding:8px 12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="cd-t" style="margin:0">추진내용 · 일정 표</div>
+        <button class="btn bp bs" onclick="addSchRow()">+ 행 추가</button>
+      </div>
+    </div>
+    <div class="cd sch-tbl">
+      <div class="tbl-wrap">
+        <table class="tbl compact" id="schEditTbl"></table>
+      </div>
+      <div style="text-align:right;margin-top:8px">
+        <button class="btn bg bs" onclick="saveSchTable()">변경사항 저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 이슈 관리 -->
+  <div id="ad-iss" style="display:none">
+    <div class="cd" style="padding:8px 12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="cd-t" style="margin:0">이슈 및 조치계획 관리</div>
+        <button class="btn bd bs" style="background:#fee2e2;color:var(--red)" onclick="showAddIssue()">+ 이슈 등록</button>
+      </div>
+      <div class="fpill" id="issFilterPill" style="margin-top:8px"></div>
+    </div>
+    <div id="issueListAdmin"></div>
+  </div>
+
+  <!-- 산출물 -->
+  <div id="ad-doc" style="display:none">
+    <div class="cd" style="padding:8px 12px">
+      <div class="cd-t">도시 선택</div>
+      <div class="chips" id="docCityChips"></div>
+      <div class="cd-t" style="margin-top:8px">시스템 선택</div>
+      <div class="chips" id="docSysChips"></div>
+    </div>
+    <div id="docSummary"></div>
+    <div class="cd" style="padding:8px 12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div class="cd-t" style="margin:0">산출물 목록</div>
+        <div style="display:flex;gap:4px">
+          <button class="btn bt bs" onclick="showDocMgr()">+ 산출물 추가</button>
+          <button class="btn bg bs" onclick="downloadAllFiles()">전체 다운로드</button>
+        </div>
+      </div>
+    </div>
+    <div id="docList"></div>
+  </div>
+</div>
+
+<!-- ==================== REPORT ==================== -->
+<div id="s-report" class="sec">
+  <div class="rh"><h2>행정체제 개편 통합 현황 보고</h2><p id="rptDt"></p></div>
+  <div class="rg" id="rptG"></div>
+  <div class="cd"><div class="cd-t">도시별 단계 분포</div><div class="ch h150"><canvas id="rptStg"></canvas></div></div>
+  <div class="cd"><div class="cd-t">시스템별 진척률 비교</div><div class="ch"><canvas id="rptCmp"></canvas></div></div>
+  <div class="cd"><div class="cd-t">리스크 평가</div><div id="riskG" style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--g50);border-radius:8px"></div></div>
+  <div class="cd"><div class="cd-t">시스템별 상세 (인천시)</div><div class="tbl-wrap"><table class="tbl compact" id="rptSysInch"></table></div></div>
+  <div class="cd"><div class="cd-t">시스템별 상세 (전남광주특별시)</div><div class="tbl-wrap"><table class="tbl compact" id="rptSysJg"></table></div></div>
+  <div class="cd"><div class="cd-t" id="rptIssTitle">이슈 및 조치계획 현황</div><div id="rptIssList"></div></div>
+  <div class="cd"><div class="cd-t">행사 · 단계별 보고 일정</div><div id="rptEvtList"></div></div>
+  <div class="cd"><div class="cd-t">추진내용 · 일정</div><div class="tbl-wrap"><table class="tbl compact" id="rptSchTbl"></table></div></div>
+  <div class="cd"><div class="cd-t">주요 마일스톤</div><div id="rptMS" style="padding-left:18px;position:relative"></div></div>
+</div>
+
+<div class="dp-bg" id="dpBg" onclick="if(event.target===this)closeDp()"><div class="dp" id="dpBody"></div></div>
+<div class="mo-bg" id="moBg" onclick="if(event.target===this)closeM()"><div class="mo" id="moBody"></div></div>
+<div class="toast" id="toast"></div>
+
+</div><!-- /mainApp -->
+
+<script>
+// ========== LOGIN ==========
+const USERS=[
+  {id:'admin',pw:'#chindo0701!',nm:'관리자',role:'admin'},
+  {id:'omcom',pw:'#chindo0701!',nm:'OMCOM',role:'user'}
+];
+let curUser=null;
+
+function doLogin(){
+  const id=document.getElementById('loginId').value.trim();
+  const pw=document.getElementById('loginPw').value;
+  const u=USERS.find(x=>x.id===id&&x.pw===pw);
+  if(u){
+    curUser=u;
+    try{sessionStorage.setItem('loggedInUser',id)}catch(e){}
+    showApp();
+  }else{
+    document.getElementById('loginErr').textContent='아이디 또는 비밀번호가 일치하지 않습니다.';
+    document.getElementById('loginPw').value='';
+    document.getElementById('loginPw').focus();
+  }
+}
+function doLogout(){
+  curUser=null;
+  try{sessionStorage.removeItem('loggedInUser')}catch(e){}
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('loginId').value='';
+  document.getElementById('loginPw').value='';
+}
+function showApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  document.getElementById('usrInfo').textContent=`사용자: ${curUser.nm} (${curUser.role==='admin'?'관리자':'일반사용자'})`;
+  applyRolePerm();
+  initApp();
+}
+function applyRolePerm(){
+  const isAdmin=curUser&&curUser.role==='admin';
+  document.getElementById('tabAdmin').style.display=isAdmin?'':'none';
+  // hide management quick-links / add buttons for non-admin
+  ['evtMore','schMore','issMore'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isAdmin?'':'none'});
+  const tAdd=document.getElementById('taskAddBtn');
+  if(tAdd)tAdd.style.display=isAdmin?'':'none';
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none'){doLogin()}
+});
+try{const saved=sessionStorage.getItem('loggedInUser');if(saved){const u=USERS.find(x=>x.id===saved);if(u){curUser=u;showApp();}}}catch(e){}
+
+// ========== CONSTANTS ==========
+const DDAY=new Date('2026-07-01T09:00:00+09:00');
+const PUB_DT=new Date('2026-07-01T09:00:00+09:00');
+
+const CITIES=[
+  {id:0,nm:'인천시',sh:'인천',color:'#1a56db',icon:'IC'},
+  {id:1,nm:'전남광주특별시',sh:'전남광주',color:'#0d9488',icon:'JG'}
+];
+
+// 6단계 워크플로
+const STAGES=[
+  {idx:0,nm:'요청',pct:10,color:'#94a3b8'},
+  {idx:1,nm:'수행계획수립',pct:30,color:'#fb923c'},
+  {idx:2,nm:'수행',pct:60,color:'#3b82f6'},
+  {idx:3,nm:'수행결과확인',pct:70,color:'#8b5cf6'},
+  {idx:4,nm:'결과보고수신',pct:80,color:'#ec4899'},
+  {idx:5,nm:'결과보고',pct:100,color:'#10b981'}
+];
+
+const EVT_TYPES=['단계별보고','중간보고','최종보고','회의','발표','기타'];
+
+const DOC_STATUSES=['미작성','자료요청','작성중','검토중','완료'];
+const DOC_ST_CLS=['doc-st-none','doc-st-req','doc-st-wip','doc-st-review','doc-st-done'];
+const ISS_STATUSES=['미해결','진행중','해결완료'];
+const ISS_PRIORITIES=['높음','중간','낮음'];
+
+const MS=[
+  {d:'2025.11',t:'사업 착수',ok:1},
+  {d:'2025.12',t:'인프라 도입',ok:1},
+  {d:'2026.02',t:'전환 스크립트 분석/구현',ok:1},
+  {d:'2026.04',t:'테스트 결과 공유/협의',ok:0},
+  {d:'2026.05',t:'모의전환 시나리오 검증',ok:0},
+  {d:'2026.06',t:'전환방식/계획 확정',ok:0},
+  {d:'2026.06.30',t:'데이터 전환 완료',ok:0},
+  {d:'2026.07.01 09:00',t:'시스템 게시 / 서비스 개통',ok:0},
+  {d:'2026.08.30',t:'안정화 완료/사업종료',ok:0}
+];
+
+// ========== DATA (CRUD targets) ==========
+let SYSTEMS=[
+  {id:0,nm:'시도새올',full:'지방행정공통시스템',dp:'행안부/KLID'},
+  {id:1,nm:'주민등록',full:'주민등록시스템',dp:'행정안전부'},
+  {id:2,nm:'지방인사',full:'표준지방인사정보시스템',dp:'인사혁신처'},
+  {id:3,nm:'주소정보',full:'주소정보관리시스템',dp:'국토교통부'},
+  {id:4,nm:'지방재정',full:'통합지방재정시스템',dp:'행정안전부'},
+  {id:5,nm:'세외수입',full:'지방세외수입정보시스템',dp:'행정안전부'},
+  {id:6,nm:'지방세',full:'지방세정보시스템',dp:'행정안전부'},
+  {id:7,nm:'청백e',full:'청백e시스템',dp:'권익위·행안부'},
+  {id:8,nm:'건축행정',full:'건축행정시스템',dp:'국토교통부'}
+];
+let sysNextId=9;
+
+// stage[cityId][sysId] = {stage:0~5, stages:[{idx, startDt, endDt, status:'대기'|'진행'|'완료', note}]}
+let stage={};
+
+let events=[];
+let evtNextId=1;
+
+let scheduleRows=[];
+let schNextId=1;
+
+let issues=[];
+let issNextId=1;
+
+let tasks=[];
+let taskId=1;
+
+// DOCs shared list
+let DOCS=[];
+let docNextId=0;
+let docStatus={};
+let docFiles={};
+
+// State for views
+let calDate=new Date();
+let selDate=fmtD(new Date());
+let taskFilterMode='all';
+let curAdminSub='sys';
+let stgCity=0,stgSys=0;
+let docCity=0,docSysIdx=0;
+let issFilterSt='all';
+
+// ========== INIT DATA ==========
+function _initData(){
+  // Stage init - 모두 stage 0 (요청)
+  CITIES.forEach(c=>{
+    stage[c.id]={};
+    SYSTEMS.forEach(s=>{
+      stage[c.id][s.id]=_blankStage(c.id,s.id);
+    });
+  });
+
+  // 샘플 데이터 - 인천 일부 시스템 진척
+  _setStageData(0,0,2,'2026-02-01','2026-07-01'); // 시도새올 수행
+  _setStageData(0,1,2,'2026-02-01','2026-07-01'); // 주민등록 수행
+  _setStageData(0,2,3,'2026-02-01','2026-06-30'); // 지방인사 결과확인
+  _setStageData(0,3,1,'2026-03-01','2026-07-01'); // 주소정보 계획수립
+  _setStageData(0,4,1,'2026-03-01','2026-07-01'); // 지방재정
+  _setStageData(0,5,1,'2026-03-01','2026-07-01'); // 세외수입
+  _setStageData(0,6,2,'2026-02-15','2026-07-01'); // 지방세
+  _setStageData(0,7,0,'2026-04-01','2026-07-01'); // 청백e
+  _setStageData(0,8,0,'2026-04-01','2026-07-01'); // 건축행정
+  // 전남광주 - 대부분 요청/계획 단계
+  _setStageData(1,0,1,'2026-05-01','2026-07-01');
+  _setStageData(1,1,0,'2026-05-15','2026-07-01');
+  _setStageData(1,2,1,'2026-05-01','2026-07-01');
+  _setStageData(1,3,0,'2026-05-15','2026-07-01');
+  _setStageData(1,4,0,'2026-05-15','2026-07-01');
+  _setStageData(1,5,0,'2026-05-15','2026-07-01');
+  _setStageData(1,6,0,'2026-05-15','2026-07-01');
+  _setStageData(1,7,0,'2026-05-20','2026-07-01');
+  _setStageData(1,8,0,'2026-05-20','2026-07-01');
+
+  // 샘플 행사
+  events=[
+    {id:evtNextId++,title:'시도행정 공통기반 테스트 환경 구축 협의회',type:'회의',date:'2026-05-26',time:'14:00',cityId:1,sysId:0,owner:'전남광주 사업단',location:'광주광역시청',note:'테스트 환경 구축 협의 결과보고'},
+    {id:evtNextId++,title:'1차 단계별 보고회 (인천)',type:'단계별보고',date:'2026-05-30',time:'10:00',cityId:0,sysId:-1,owner:'인천 사업단',location:'인천광역시청 영상회의실',note:'1단계(요청)~2단계(계획수립) 진척 보고'},
+    {id:evtNextId++,title:'중간 진척 보고회 (통합)',type:'중간보고',date:'2026-06-15',time:'15:00',cityId:-1,sysId:-1,owner:'행정안전부',location:'세종 정부청사',note:'인천·전남광주 합동'},
+    {id:evtNextId++,title:'최종 결과보고회',type:'최종보고',date:'2026-07-05',time:'14:00',cityId:-1,sysId:-1,owner:'행정안전부',location:'정부서울청사',note:'전환 완료 결과보고 및 안정화 계획'}
+  ];
+
+  // 샘플 추진내용 일정
+  scheduleRows=[
+    {id:schNextId++,item:'사업 착수 보고',period:'2025.11',owner:'행안부',status:'완료',progress:100,note:'사업단 구성 및 착수'},
+    {id:schNextId++,item:'인프라 환경 구축',period:'2025.12 ~ 2026.01',owner:'KLID',status:'완료',progress:100,note:'테스트 환경 포함'},
+    {id:schNextId++,item:'전환 스크립트 분석·구현',period:'2026.02 ~ 2026.03',owner:'각 시스템 SI',status:'완료',progress:100,note:''},
+    {id:schNextId++,item:'모의테스트 수행·보완',period:'2026.03 ~ 2026.04',owner:'각 시스템 SI',status:'진행',progress:75,note:'1·2차 모의테스트 진행 중'},
+    {id:schNextId++,item:'테스트 결과 공유·협의',period:'2026.04 ~ 2026.05',owner:'사업단·행안부',status:'진행',progress:50,note:''},
+    {id:schNextId++,item:'전남광주 테스트환경 구축 협의',period:'2026.05.26',owner:'전남광주 사업단',status:'완료',progress:100,note:'협의회 결과보고 (5/26)'},
+    {id:schNextId++,item:'모의전환 시나리오·검증',period:'2026.05 ~ 2026.06',owner:'각 시스템 SI',status:'진행',progress:30,note:''},
+    {id:schNextId++,item:'전환방식·계획 최종 확정',period:'2026.06',owner:'사업단',status:'대기',progress:0,note:''},
+    {id:schNextId++,item:'D-DAY 데이터 전환 (실 전환)',period:'2026.06.30 ~ 07.01',owner:'전체',status:'대기',progress:0,note:'T-15h부터 단계 수행'},
+    {id:schNextId++,item:'시스템 정식 게시',period:'2026.07.01 09:00',owner:'전체',status:'대기',progress:0,note:'서비스 개통'},
+    {id:schNextId++,item:'안정화 운영·결과보고',period:'2026.07 ~ 2026.08',owner:'사업단',status:'대기',progress:0,note:''}
+  ];
+
+  // 이슈
+  issues=[
+    {id:issNextId++,cityId:0,sysId:0,title:'시도새올 코드매핑 통합 필요',desc:'행정구역 신설에 따른 표준코드 정의 미확정',plan:'표준코드 재정의 후 매핑테이블 수정',priority:'높음',status:'진행중',date:'2026-04-28',startDt:'2026-04-28',endDt:'2026-05-30',progress:50,resolvedDate:''},
+    {id:issNextId++,cityId:0,sysId:4,title:'지방재정 예산코드 중복건 정리',desc:'통합 자치단체 예산코드 중복 3건',plan:'중복코드 통합 신규 발번',priority:'중간',status:'진행중',date:'2026-04-25',startDt:'2026-04-25',endDt:'2026-06-10',progress:60,resolvedDate:''},
+    {id:issNextId++,cityId:1,sysId:0,title:'전남광주 행정코드 체계 정립',desc:'전라남도(도) 코드와 광주광역시 코드 통합 방안',plan:'표준코드 통합안 마련 후 행안부 협의',priority:'높음',status:'미해결',date:'2026-05-15',startDt:'2026-05-15',endDt:'2026-06-20',progress:20,resolvedDate:''},
+    {id:issNextId++,cityId:1,sysId:1,title:'주민등록 권역별 코드 분리',desc:'전남광주 통합 시 권역별 분류체계 정립',plan:'권역 분류 매핑테이블 작성',priority:'중간',status:'진행중',date:'2026-05-18',startDt:'2026-05-18',endDt:'2026-06-25',progress:35,resolvedDate:''}
+  ];
+
+  // 샘플 할일
+  const td=fmtD(new Date());
+  const tm=fmtD(new Date(Date.now()+864e5));
+  const tm3=fmtD(new Date(Date.now()+3*864e5));
+  tasks=[
+    {id:taskId++,cityId:0,sysId:0,stgIdx:2,title:'시도새올 전환 스크립트 점검',startDt:td,endDt:tm,date:td,progress:50,done:false,doneDate:'',note:''},
+    {id:taskId++,cityId:0,sysId:6,stgIdx:2,title:'지방세 과세대장 분리 작업',startDt:td,endDt:tm3,date:td,progress:40,done:false,doneDate:'',note:''},
+    {id:taskId++,cityId:1,sysId:0,stgIdx:1,title:'전남광주 표준코드 정의서 작성',startDt:td,endDt:tm3,date:td,progress:25,done:false,doneDate:'',note:''},
+    {id:taskId++,cityId:1,sysId:1,stgIdx:0,title:'주민등록 데이터 현황 요청 공문',startDt:td,endDt:td,date:td,progress:10,done:false,doneDate:'',note:''},
+    {id:taskId++,cityId:-1,sysId:-1,stgIdx:-1,title:'합동 사업단 정기회의',startDt:td,endDt:td,date:td,progress:0,done:false,doneDate:'',note:'주간 회의'}
+  ];
+
+  // 산출물 초기화
+  DOCS=[
+    '자료전환계획서','현황분석서','별첨 ERD','전환대상 업무목록','전환대상컬럼정의서',
+    '코드매핑정의서','서비스점검 체크리스트','프로그램 목록','자료전환스크립트','자료검증스크립트',
+    '자료전환 자체테스트 결과서','서비스점검결과서','모의훈련결과보고','전환계획수립','최종시나리오 확정',
+    '실데이터 전환 백업결과서','실데이터전환결과서'
+  ].map((nm,i)=>({id:i,nm}));
+  docNextId=DOCS.length;
+  CITIES.forEach(c=>{docStatus[c.id]={};docFiles[c.id]={};SYSTEMS.forEach(s=>{docStatus[c.id][s.id]={};docFiles[c.id][s.id]={};DOCS.forEach(d=>{docStatus[c.id][s.id][d.id]=0;docFiles[c.id][s.id][d.id]=[]})})});
+}
+
+function _blankStage(cityId,sysId){
+  const baseStart='2026-02-01',baseEnd='2026-07-01';
+  return{
+    stage:0,
+    startDt:baseStart,endDt:baseEnd,
+    stages:STAGES.map(s=>({idx:s.idx,startDt:'',endDt:'',status:'대기',note:''}))
+  };
+}
+
+function _setStageData(cityId,sysId,curStg,startDt,endDt){
+  const st=stage[cityId][sysId];
+  st.stage=curStg;st.startDt=startDt;st.endDt=endDt;
+  for(let i=0;i<=curStg;i++){
+    st.stages[i].status=i<curStg?'완료':'진행';
+    st.stages[i].startDt=startDt;
+    st.stages[i].endDt=endDt;
+  }
+}
+
+function initApp(){
+  if(SYSTEMS.length&&Object.keys(stage).length===0)_initData();
+  updatePubNotice();
+  go('dash');
+}
+
+// ========== UTILS ==========
+function fmtD(d){return d.toISOString().slice(0,10)}
+function parseD(s){if(!s)return null;const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+function isAdmin(){return curUser&&curUser.role==='admin'}
+function gdd(){return Math.ceil((DDAY-new Date())/864e5)}
+function dds(){const v=gdd();return v>0?'D-'+v:v===0?'D-DAY':'D+'+Math.abs(v)}
+function stagePct(cityId,sysId){const st=stage[cityId]&&stage[cityId][sysId];if(!st)return 0;return STAGES[st.stage].pct}
+function cityAvg(cityId){let sum=0,n=0;SYSTEMS.forEach(s=>{sum+=stagePct(cityId,s.id);n++});return n?Math.round(sum/n):0}
+function overallAvg(){let sum=0,n=0;CITIES.forEach(c=>{SYSTEMS.forEach(s=>{sum+=stagePct(c.id,s.id);n++})});return n?Math.round(sum/n):0}
+function c(p){return p>=70?'var(--grn)':p>=50?'var(--pri)':p>=30?'var(--org)':'var(--red)'}
+function ch2(p){return p>=70?'#16a34a':p>=50?'#1a56db':p>=30?'#f59e0b':'#dc2626'}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+function updatePubNotice(){
+  const now=new Date();
+  const el=document.getElementById('pubNotice');
+  if(now>=PUB_DT){
+    el.classList.add('live');
+    el.innerHTML='✅ 시스템 정식 공개됨 (2026-07-01 09:00)';
+  }else{
+    el.classList.remove('live');
+    const days=Math.ceil((PUB_DT-now)/864e5);
+    el.innerHTML=`📢 데이터 전환 완료 예정: 2026-06-30 / 시스템 공식 게시: 2026-07-01 09:00 (D-${days})`;
+  }
+}
+
+// ========== NAVIGATION ==========
+function go(id){
+  if(id==='admin'&&!isAdmin()){toast('관리자만 접근 가능합니다');return}
+  document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('on',['dash','daily','admin','report'][i]===id)});
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+id).classList.add('on');
+  if(id==='dash')rDash();
+  if(id==='daily')rDaily();
+  if(id==='admin')goAdminSub(curAdminSub);
+  if(id==='report')rReport();
+}
+
+function goAdminSub(id){
+  curAdminSub=id;
+  const tabs=['sys','stg','evt','sch','iss','doc'];
+  document.querySelectorAll('#adminSubTabs .sub-tab').forEach((t,i)=>{t.classList.toggle('on',tabs[i]===id)});
+  tabs.forEach(t=>{const el=document.getElementById('ad-'+t);if(el)el.style.display=t===id?'block':'none'});
+  if(id==='sys')rAdSys();
+  if(id==='stg')rAdStg();
+  if(id==='evt')rAdEvt();
+  if(id==='sch')rAdSch();
+  if(id==='iss')rAdIss();
+  if(id==='doc')rAdDoc();
+}
+
+// ========== DASHBOARD ==========
+let cityCmpChart=null,stageDistChart=null;
+function rDash(){
+  // Header stats
+  document.getElementById('hD').textContent=dds();
+  document.getElementById('hInch').textContent=cityAvg(0)+'%';
+  document.getElementById('hJg').textContent=cityAvg(1)+'%';
+  document.getElementById('hAvg').textContent=overallAvg()+'%';
+
+  // City cards
+  document.getElementById('cityCards').innerHTML=CITIES.map(c2=>{
+    const p=cityAvg(c2.id);
+    const sysDone=SYSTEMS.filter(s=>stage[c2.id][s.id].stage===5).length;
+    const issCnt=issues.filter(i=>i.cityId===c2.id&&i.status!=='해결완료').length;
+    return`<div class="city-card ${c2.id===0?'inch':'jg'}">
+      <div class="cc-nm">${c2.nm}</div>
+      <div class="cc-sub">${c2.id===0?'2군·8구 → 2군·9구':'전라남도 + 광주광역시 통합'}</div>
+      <div class="cc-pct" style="color:${c(p)}">${p}%</div>
+      <div class="cc-bar"><div class="cc-fl" style="width:${p}%;background:${ch2(p)}"></div></div>
+      <div class="cc-meta"><span>${SYSTEMS.length}개 시스템</span><span>완료 ${sysDone} · 이슈 ${issCnt}</span></div>
+    </div>`;
+  }).join('');
+
+  // Stat row
+  const totalSys=SYSTEMS.length*CITIES.length;
+  const doneSys=CITIES.reduce((sum,c2)=>sum+SYSTEMS.filter(s=>stage[c2.id][s.id].stage===5).length,0);
+  const openIss=issues.filter(i=>i.status!=='해결완료').length;
+  const upcEvts=events.filter(e=>e.date>=fmtD(new Date())).length;
+  document.getElementById('statRow').innerHTML=`
+    <div class="st"><div class="st-v" style="color:var(--pri)">${SYSTEMS.length}</div><div class="st-l">시스템 수</div></div>
+    <div class="st"><div class="st-v" style="color:var(--grn)">${doneSys}/${totalSys}</div><div class="st-l">전환 완료</div></div>
+    <div class="st"><div class="st-v" style="color:var(--red)">${openIss}</div><div class="st-l">미결 이슈</div></div>
+    <div class="st"><div class="st-v" style="color:var(--prp)">${upcEvts}</div><div class="st-l">예정 행사</div></div>`;
+
+  // Matrix table - rows: systems, cols: city stage info
+  let h=`<thead><tr><th class="l">시스템</th>`;
+  CITIES.forEach(c2=>{h+=`<th colspan="2" style="background:${c2.color}11;color:${c2.color}">${c2.nm}</th>`});
+  h+=`</tr><tr><th class="l">　</th>`;
+  CITIES.forEach(()=>{h+=`<th>현재단계</th><th>진척률</th>`});
+  h+=`</tr></thead><tbody>`;
+  SYSTEMS.forEach(s=>{
+    h+=`<tr><td class="l">${s.nm}</td>`;
+    CITIES.forEach(c2=>{
+      const st=stage[c2.id][s.id];
+      const sg=STAGES[st.stage];
+      h+=`<td><span class="stage-cell s${sg.idx}" onclick="showStageDetail(${c2.id},${s.id})">${sg.nm}</span></td>`;
+      h+=`<td><span class="stage-pct" style="color:${c(sg.pct)}">${sg.pct}%</span></td>`;
+    });
+    h+=`</tr>`;
+  });
+  h+=`</tbody>`;
+  document.getElementById('matrixTbl').innerHTML=h;
+
+  // Stage legend
+  document.getElementById('stgLeg').innerHTML=STAGES.map(s=>`<span class="si" style="background:${s.color}">${s.idx+1}.${s.nm} ${s.pct}%</span>`).join('');
+
+  // Stage dist chart (stacked bar per city)
+  const ctx=document.getElementById('stageDistChart').getContext('2d');
+  if(stageDistChart)stageDistChart.destroy();
+  const datasets=STAGES.map((sg,i)=>({
+    label:`${i+1}.${sg.nm}`,
+    data:CITIES.map(c2=>SYSTEMS.filter(s=>stage[c2.id][s.id].stage===sg.idx).length),
+    backgroundColor:sg.color,
+    borderRadius:2
+  }));
+  stageDistChart=new Chart(ctx,{type:'bar',data:{labels:CITIES.map(c2=>c2.nm),datasets},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:8},boxWidth:8,padding:4}}},scales:{x:{stacked:true,ticks:{font:{size:9},stepSize:1},grid:{color:'#f3f4f6'}},y:{stacked:true,ticks:{font:{size:10,weight:'bold'}},grid:{display:false}}}}});
+
+  // City comparison chart
+  const ctx2=document.getElementById('cityCmpChart').getContext('2d');
+  if(cityCmpChart)cityCmpChart.destroy();
+  cityCmpChart=new Chart(ctx2,{type:'bar',data:{
+    labels:SYSTEMS.map(s=>s.nm),
+    datasets:CITIES.map(c2=>({label:c2.nm,data:SYSTEMS.map(s=>stagePct(c2.id,s.id)),backgroundColor:c2.color,borderRadius:4,barPercentage:.7,categoryPercentage:.75}))
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:9},boxWidth:10,padding:6}}},scales:{x:{ticks:{font:{size:8},maxRotation:45},grid:{display:false}},y:{max:100,ticks:{font:{size:9}},grid:{color:'#f3f4f6'}}}}});
+
+  // Event list (upcoming 4)
+  rDashEvt();
+  // Schedule preview
+  rSchPreview();
+  // Issues
+  rDashIss();
+}
+
+function rDashEvt(){
+  const td=fmtD(new Date());
+  const upc=events.filter(e=>e.date>=td).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
+  const el=document.getElementById('dashEvtList');
+  if(upc.length===0){el.innerHTML='<div style="font-size:11px;color:var(--g400);text-align:center;padding:8px">예정된 행사가 없습니다</div>';return}
+  el.innerHTML=upc.map(e=>renderEvtCard(e)).join('');
+}
+
+function renderEvtCard(e){
+  const city=e.cityId>=0?CITIES[e.cityId]:null;
+  const sys=e.sysId>=0?SYSTEMS.find(x=>x.id===e.sysId):null;
+  return`<div class="evt-card">
+    <div class="evt-hd">
+      <div style="flex:1">
+        <div class="evt-title">${e.title}</div>
+        <div class="evt-meta">
+          <span class="badge" style="background:#ede9fe;color:#7c3aed">${e.type}</span>
+          ${city?`<span class="badge ${city.id===0?'b-inch':'b-jg'}">${city.nm}</span>`:'<span class="badge b-w">통합</span>'}
+          ${sys?`<span class="tk-tag tk-sys">${sys.nm}</span>`:''}
+          ${e.owner?`<span style="font-size:9px;color:var(--g500)">담당: ${e.owner}</span>`:''}
+        </div>
+        ${e.note?`<div class="evt-desc">${e.note}</div>`:''}
+        ${e.location?`<div style="font-size:9px;color:var(--g500);margin-top:2px">📍 ${e.location}</div>`:''}
+      </div>
+      <div class="evt-dt">${e.date}${e.time?'<br>'+e.time:''}</div>
+    </div>
+  </div>`;
+}
+
+function rSchPreview(){
+  const top=scheduleRows.slice(0,6);
+  let h=`<thead><tr><th class="l">추진내용</th><th>기간</th><th>담당</th><th>상태</th></tr></thead><tbody>`;
+  top.forEach(r=>{
+    const stCls=r.status==='완료'?'b-d':r.status==='진행'?'b-r':r.status==='지연'?'b-i':'b-w';
+    h+=`<tr><td class="l">${r.item}</td><td>${r.period}</td><td>${r.owner}</td><td><span class="badge ${stCls}">${r.status}</span></td></tr>`;
+  });
+  if(scheduleRows.length>6)h+=`<tr><td colspan="4" style="font-size:9px;color:var(--g400)">외 ${scheduleRows.length-6}건...</td></tr>`;
+  h+=`</tbody>`;
+  document.getElementById('schPreview').innerHTML=h;
+}
+
+function rDashIss(){
+  const open=issues.filter(x=>x.status!=='해결완료').sort((a,b)=>{
+    const pi={높음:0,중간:1,낮음:2};return(pi[a.priority]||0)-(pi[b.priority]||0)||b.date.localeCompare(a.date)
+  });
+  const el=document.getElementById('dashIssList');
+  document.getElementById('dashIssTitle').innerHTML=`미결 이슈 및 조치계획 (${open.length}건) ${isAdmin()?'<span class="more" onclick="go(\'admin\');setTimeout(()=>goAdminSub(\'iss\'),50)">관리 →</span>':''}`;
+  if(open.length===0){el.innerHTML='<div style="text-align:center;color:var(--grn);font-size:11px;padding:10px">미결 이슈가 없습니다</div>';return}
+  el.innerHTML=open.slice(0,5).map(iss=>renderIssCard(iss,false)).join('');
+  if(open.length>5)el.innerHTML+=`<div style="font-size:9px;color:var(--g400);text-align:center;padding:4px">외 ${open.length-5}건...</div>`;
+}
+
+function renderIssCard(iss,showActions){
+  const city=iss.cityId>=0?CITIES[iss.cityId]:null;
+  const sys=iss.sysId>=0?SYSTEMS.find(x=>x.id===iss.sysId):null;
+  const resolved=iss.status==='해결완료';
+  const priColor=iss.priority==='높음'?'var(--red)':iss.priority==='중간'?'var(--org)':'var(--pri)';
+  const stColor=iss.status==='미해결'?'var(--red)':iss.status==='진행중'?'var(--org)':'var(--grn)';
+  const prog=iss.progress||0;
+  return`<div class="iss-card${resolved?' resolved':''}">
+    <div class="iss-hd">
+      <div class="iss-icon" style="background:${priColor}">${iss.priority==='높음'?'!':iss.priority==='중간'?'·':'−'}</div>
+      <div class="iss-body">
+        <div class="iss-title">${iss.title}</div>
+        <div class="iss-meta">
+          ${city?`<span class="badge ${city.id===0?'b-inch':'b-jg'}">${city.nm}</span>`:'<span class="badge b-w">통합</span>'}
+          ${sys?`<span class="tk-tag tk-sys">${sys.nm}</span>`:''}
+          <span class="badge" style="background:${stColor}15;color:${stColor}">${iss.status}</span>
+          <span style="font-size:8px;color:var(--g400)">${iss.startDt||iss.date}${iss.endDt?' ~ '+iss.endDt:''}</span>
+        </div>
+        ${iss.desc?`<div style="font-size:10px;color:var(--g500);margin-top:4px;line-height:1.3">${iss.desc}</div>`:''}
+        ${iss.plan?`<div class="iss-plan"><div class="iss-plan-label">조치계획</div><div class="iss-plan-text">${iss.plan}</div></div>`:''}
+        <div class="tk-prog"><div class="tk-prog-f" style="width:${prog}%;background:${prog>=70?'var(--grn)':prog>=30?'var(--org)':'var(--red)'}"></div></div>
+        <div style="font-size:9px;color:var(--g500);text-align:right;margin-top:2px">진행률 ${prog}%</div>
+        ${resolved&&iss.resolvedDate?`<div style="font-size:9px;color:var(--grn);margin-top:3px">✓ ${iss.resolvedDate} 해결</div>`:''}
+      </div>
+    </div>
+    ${showActions?`<div class="iss-actions">
+      <button class="btn bo bs" onclick="editIssue(${iss.id})">수정</button>
+      ${!resolved?`<button class="btn bg bs" onclick="resolveIssue(${iss.id})">해결완료</button>`:`<button class="btn bo bs" onclick="reopenIssue(${iss.id})">재오픈</button>`}
+      <button class="btn bd bs" onclick="delIssue(${iss.id})">삭제</button>
+    </div>`:''}
+  </div>`;
+}
+
+// ========== Stage Detail Popup ==========
+function showStageDetail(cityId,sysId){
+  const city=CITIES[cityId];const sys=SYSTEMS.find(s=>s.id===sysId);
+  const st=stage[cityId][sysId];
+  const curSg=STAGES[st.stage];
+  let h=`<button class="dp-close" onclick="closeDp()">&times;</button>
+    <div class="dp-nm"><span class="badge ${cityId===0?'b-inch':'b-jg'}" style="font-size:10px">${city.nm}</span> ${sys.nm}</div>
+    <div class="dp-sub">${sys.full} · ${sys.dp}</div>
+    <div style="background:${curSg.color}15;border-radius:8px;padding:10px;margin-bottom:10px;text-align:center">
+      <div style="font-size:10px;color:${curSg.color};font-weight:700">현재 단계</div>
+      <div style="font-size:18px;font-weight:800;color:${curSg.color};margin-top:2px">${st.stage+1}. ${curSg.nm}</div>
+      <div style="font-size:24px;font-weight:800;color:${curSg.color};margin-top:4px">${curSg.pct}%</div>
+    </div>
+    <div style="font-size:11px;font-weight:700;margin-bottom:6px">6단계 진척 현황</div>`;
+  STAGES.forEach((sg,i)=>{
+    const ss=st.stages[i];
+    const stCls=ss.status==='완료'?'b-d':ss.status==='진행'?'b-r':'b-w';
+    const active=i===st.stage;
+    h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--g100)${active?';background:'+sg.color+'10':''}">
+      <div style="width:22px;height:22px;border-radius:50%;background:${ss.status==='완료'?sg.color:active?sg.color:'var(--g200)'};color:${ss.status==='완료'||active?'#fff':'var(--g500)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${i+1}</div>
+      <div style="flex:1">
+        <div style="font-size:11px;font-weight:600">${sg.nm} <span style="color:var(--g400);font-weight:500">(${sg.pct}%)</span></div>
+        <div style="font-size:9px;color:var(--g500)">${ss.startDt||'-'} ~ ${ss.endDt||'-'}</div>
+        ${ss.note?`<div style="font-size:9px;color:var(--g600);margin-top:2px">${ss.note}</div>`:''}
+      </div>
+      <span class="badge ${stCls}">${ss.status}</span>
+    </div>`;
+  });
+  if(isAdmin())h+=`<div style="text-align:right;margin-top:10px"><button class="btn bp bs" onclick="closeDp();go('admin');setTimeout(()=>{goAdminSub('stg');stgCity=${cityId};stgSys=${sysId};rAdStg()},100)">관리 페이지에서 편집</button></div>`;
+  document.getElementById('dpBody').innerHTML=h;
+  document.getElementById('dpBg').classList.add('show');
+}
+function closeDp(){document.getElementById('dpBg').classList.remove('show')}
+
+// ========== DAILY ==========
+let weekChartInst=null;
+function rDaily(){rCal();rDaySum();rTaskFilter();rTaskList();rWeekChart()}
+
+function rCal(){
+  const y=calDate.getFullYear(),m=calDate.getMonth();
+  const first=new Date(y,m,1),last=new Date(y,m+1,0);
+  const startDow=first.getDay();
+  const daysInMonth=last.getDate();
+  const prevLast=new Date(y,m,0).getDate();
+  const today=fmtD(new Date());
+
+  let html=`<div class="cal-hd"><button class="cal-nav" onclick="calNav(-1)">◀</button><span>${y}년 ${m+1}월</span><button class="cal-nav" onclick="calNav(1)">▶</button></div>`;
+  html+=`<div class="cal-grid">`;
+  ['일','월','화','수','목','금','토'].forEach(d=>{html+=`<div class="cal-dow">${d}</div>`});
+  for(let i=startDow-1;i>=0;i--){const day=prevLast-i;const ds=fmtD(new Date(y,m-1,day));html+=`<div class="cal-day other" onclick="pickDate('${ds}')">${day}<div class="dot-row">${dotHtml(ds)}</div></div>`}
+  for(let d=1;d<=daysInMonth;d++){const ds=fmtD(new Date(y,m,d));const cls=['cal-day'];if(ds===today)cls.push('today');if(ds===selDate)cls.push('sel');html+=`<div class="${cls.join(' ')}" onclick="pickDate('${ds}')">${d}<div class="dot-row">${dotHtml(ds)}</div></div>`}
+  const totalCells=startDow+daysInMonth;const remaining=totalCells%7===0?0:7-totalCells%7;
+  for(let d=1;d<=remaining;d++){const ds=fmtD(new Date(y,m+1,d));html+=`<div class="cal-day other" onclick="pickDate('${ds}')">${d}<div class="dot-row">${dotHtml(ds)}</div></div>`}
+  html+=`</div>`;
+  document.getElementById('calArea').innerHTML=html;
+}
+
+function dotHtml(ds){
+  const td=fmtD(new Date());
+  const dt=tasks.filter(t=>{const sd=t.startDt||t.date;const ed=t.endDt||t.date;return ds>=sd&&ds<=ed});
+  const hasPlan=dt.some(t=>!t.done),hasDone=dt.some(t=>t.done),hasOver=dt.some(t=>!t.done&&(t.endDt||t.date)<td);
+  const hasEvt=events.some(e=>e.date===ds);
+  let dots='';if(hasPlan&&!hasOver)dots+='<span class="dot-plan"></span>';if(hasDone)dots+='<span class="dot-done"></span>';if(hasOver)dots+='<span class="dot-over"></span>';if(hasEvt)dots+='<span class="dot-evt"></span>';return dots;
+}
+function calNav(dir){calDate.setMonth(calDate.getMonth()+dir);rCal()}
+function pickDate(ds){selDate=ds;rDaily()}
+
+function rDaySum(){
+  const td=fmtD(new Date());
+  const dt=tasks.filter(t=>{const sd=t.startDt||t.date;const ed=t.endDt||t.date;return selDate>=sd&&selDate<=ed});
+  const evt=events.filter(e=>e.date===selDate);
+  const planned=dt.length,completed=dt.filter(t=>t.done).length;
+  const overdue=selDate<td?dt.filter(t=>!t.done).length:0;
+  document.getElementById('daySumArea').innerHTML=`
+    <div class="ds"><div class="ds-v" style="color:var(--pri)">${planned}</div><div class="ds-l">계획</div></div>
+    <div class="ds"><div class="ds-v" style="color:var(--grn)">${completed}</div><div class="ds-l">완료</div></div>
+    <div class="ds"><div class="ds-v" style="color:var(--red)">${overdue}</div><div class="ds-l">지연</div></div>
+    <div class="ds"><div class="ds-v" style="color:var(--prp)">${evt.length}</div><div class="ds-l">행사</div></div>`;
+}
+
+function rTaskFilter(){
+  const modes=[{k:'all',l:'전체'},{k:'plan',l:'할일'},{k:'done',l:'한일'},{k:'overdue',l:'지연'},{k:'evt',l:'행사'}];
+  document.getElementById('taskFilter').innerHTML=modes.map(m=>{const on=taskFilterMode===m.k;return`<div class="pill${on?' on':''}" onclick="taskFilterMode='${m.k}';rTaskFilter();rTaskList()">${m.l}</div>`}).join('');
+}
+
+function rTaskList(){
+  const td=fmtD(new Date());
+  let list=[];
+  if(taskFilterMode==='evt'){
+    list=events.filter(e=>e.date===selDate).map(e=>({_isEvt:true,evt:e}));
+  }else{
+    let tlist=tasks.filter(t=>{const sd=t.startDt||t.date;const ed=t.endDt||t.date;return selDate>=sd&&selDate<=ed});
+    if(selDate===td){const overdue=tasks.filter(t=>!t.done&&(t.endDt||t.date)<td);overdue.forEach(t=>{if(!tlist.find(x=>x.id===t.id))tlist.push(t)})}
+    if(taskFilterMode==='plan')tlist=tlist.filter(t=>!t.done);
+    else if(taskFilterMode==='done')tlist=tlist.filter(t=>t.done);
+    else if(taskFilterMode==='overdue')tlist=tlist.filter(t=>!t.done&&(t.endDt||t.date)<=td);
+    tlist.sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;return (a.startDt||a.date).localeCompare(b.startDt||b.date)});
+    list=tlist.map(t=>({_isEvt:false,task:t}));
+    // also include events for this date when 'all'
+    if(taskFilterMode==='all'){
+      events.filter(e=>e.date===selDate).forEach(e=>list.push({_isEvt:true,evt:e}));
+    }
+  }
+  if(list.length===0){document.getElementById('taskListArea').innerHTML=`<div class="cd" style="text-align:center;color:var(--g400);font-size:11px;padding:20px">이 날짜에 등록된 항목이 없습니다${isAdmin()?'<div style="margin-top:8px"><button class="btn bp bs" onclick="showAddTask()">+ 할일 등록</button></div>':''}</div>`;return}
+
+  document.getElementById('taskListArea').innerHTML=list.map(item=>{
+    if(item._isEvt){
+      const e=item.evt;
+      const city=e.cityId>=0?CITIES[e.cityId]:null;
+      return`<div class="tk evt"><div class="tk-top"><div style="width:20px;height:20px;border-radius:50%;background:var(--prp);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px">📅</div><div class="tk-body"><div class="tk-title">${e.title}</div><div class="tk-meta"><span class="tk-tag" style="background:#ede9fe;color:#7c3aed">${e.type}</span>${city?`<span class="badge ${city.id===0?'b-inch':'b-jg'}">${city.nm}</span>`:'<span class="badge b-w">통합</span>'}${e.time?`<span class="tk-date">⏰ ${e.time}</span>`:''}${e.location?`<span class="tk-date">📍 ${e.location}</span>`:''}</div>${e.note?`<div class="tk-note">${e.note}</div>`:''}</div></div></div>`;
+    }
+    const t=item.task;
+    const city=t.cityId>=0?CITIES[t.cityId]:null;
+    const sys=t.sysId>=0?SYSTEMS.find(x=>x.id===t.sysId):null;
+    const sg=t.stgIdx>=0?STAGES[t.stgIdx]:null;
+    const isOver=!t.done&&(t.endDt||t.date)<td;
+    const cls=t.done?'done':isOver?'overdue':'plan';
+    const prog=t.progress||0;
+    return`<div class="tk ${cls}"><div class="tk-top"><div class="tk-chk${t.done?' checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div><div class="tk-body"><div class="tk-title${t.done?' crossed':''}">${t.title}</div><div class="tk-meta">${city?`<span class="badge ${city.id===0?'b-inch':'b-jg'}">${city.nm}</span>`:'<span class="badge b-w">통합</span>'}${sys?`<span class="tk-tag tk-sys">${sys.nm}</span>`:''}${sg?`<span class="tk-tag tk-stg">${sg.idx+1}.${sg.nm} ${sg.pct}%</span>`:''}<span class="tk-date">📅 ${t.startDt||t.date}${t.endDt&&t.endDt!==(t.startDt||t.date)?' ~ '+t.endDt:''}</span>${isOver?`<span class="tk-date" style="color:var(--red);font-weight:600">⚠ 지연</span>`:''}${t.done&&t.doneDate?`<span class="tk-date" style="color:var(--grn)">✓ ${t.doneDate}</span>`:''}</div><div class="tk-prog"><div class="tk-prog-f" style="width:${prog}%;background:${prog>=70?'var(--grn)':prog>=30?'var(--pri)':'var(--org)'}"></div></div><div style="font-size:9px;color:var(--g500);text-align:right;margin-top:2px">진행률 ${prog}%</div>${t.note?`<div class="tk-note">${t.note}</div>`:''}</div></div>${isAdmin()?`<div class="tk-actions"><button class="btn bo bs" onclick="editTask(${t.id})">수정</button><button class="btn bd bs" onclick="delTask(${t.id})">삭제</button>${!t.done?`<button class="btn bg bs" onclick="toggleTask(${t.id})">완료</button>`:''}</div>`:''}</div>`;
+  }).join('');
+}
+
+function toggleTask(id){if(!isAdmin()){toast('관리자만 변경 가능합니다');return}const t=tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;t.doneDate=t.done?fmtD(new Date()):'';if(t.done)t.progress=100;rDaily();toast(t.done?'완료 처리되었습니다':'미완료로 변경되었습니다')}
+function delTask(id){if(!isAdmin())return;if(!confirm('이 항목을 삭제하시겠습니까?'))return;tasks=tasks.filter(x=>x.id!==id);rDaily();toast('삭제되었습니다')}
+
+function showAddTask(){
+  if(!isAdmin()){toast('관리자만 등록 가능합니다');return}
+  document.getElementById('moBody').innerHTML=`<div class="mo-bar"></div><div class="mo-t">할일 등록</div>
+    <div class="er"><div class="el">제목</div><input class="ei" id="atTitle" placeholder="할일을 입력하세요"></div>
+    <div class="er"><div class="el">도시</div><select class="es" id="atCity"><option value="-1">통합(공통)</option>${CITIES.map(c2=>`<option value="${c2.id}">${c2.nm}</option>`).join('')}</select></div>
+    <div class="er"><div class="el">시스템</div><select class="es" id="atSys"><option value="-1">해당없음</option>${SYSTEMS.map(s=>`<option value="${s.id}">${s.nm}</option>`).join('')}</select></div>
+    <div class="er"><div class="el">단계</div><select class="es" id="atStg" onchange="document.getElementById('atProg').value=this.value>=0?STAGES[+this.value].pct:0;document.getElementById('atProgV').textContent=document.getElementById('atProg').value+'%'"><option value="-1">해당없음</option>${STAGES.map(s=>`<option value="${s.idx}">${s.idx+1}.${s.nm} (${s.pct}%)</option>`).join('')}</select></div>
+    <div class="er"><div class="el">시작일</div><input class="ei" type="date" id="atStart" value="${selDate}"></div>
+    <div class="er"><div class="el">종료일</div><input class="ei" type="date" id="atEnd" value="${selDate}"></div>
+    <div class="er"><div class="el">진행률</div><div class="sw"><input type="range" min="0" max="100" value="0" id="atProg" oninput="document.getElementById('atProgV').textContent=this.value+'%'"><div class="sv" id="atProgV">0%</div></div></div>
+    <div class="er"><div class="el">비고</div><textarea class="ei" id="atNote" rows="2"></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn bo" onclick="closeM()">취소</button><button class="btn bp" style="flex:1" onclick="addTask()">등록</button></div>`;
+  document.getElementById('moBg').classList.add('show');
+}
+function addTask(){
+  const title=document.getElementById('atTitle').value.trim();if(!title){toast('제목을 입력하세요');return}
+  const startDt=document.getElementById('atStart').value;
+  const endDt=document.getElementById('atEnd').value||startDt;
+  const progress=+document.getElementById('atProg').value;
+  tasks.push({
+    id:taskId++,title,
+    cityId:+document.getElementById('atCity').value,
+    sysId:+document.getElementById('atSys').value,
+    stgIdx:+document.getElementById('atStg').value,
+    startDt,endDt,date:startDt,
+    progress,done:progress>=100,doneDate:progress>=100?fmtD(new Date()):'',
+    note:document.getElementById('atNote').value.trim()
+  });
+  closeM();rDaily();toast('할일이 등록되었습니다');
+}
+function editTask(id){
+  if(!isAdmin())return;
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  const startDt=t.startDt||t.date||'',endDt=t.endDt||t.date||'',prog=t.progress||0;
+  document.getElementById('moBody').innerHTML=`<div class="mo-bar"></div><div class="mo-t">할일 수정</div>
+    <div class="er"><div class="el">제목</div><input class="ei" id="etTitle" value="${t.title}"></div>
+    <div class="er"><div class="el">도시</div><select class="es" id="etCity"><option value="-1"${t.cityId===-1?' selected':''}>통합(공통)</option>${CITIES.map(c2=>`<option value="${c2.id}"${t.cityId===c2.id?' selected':''}>${c2.nm}</option>`).join('')}</select></div>
+    <div class="er"><div class="el">시스템</div><select class="es" id="etSys"><option value="-1"${t.sysId===-1?' selected':''}>해당없음</option>${SYSTEMS.map(s=>`<option value="${s.id}"${t.sysId===s.id?' selected':''}>${s.nm}</option>`).join('')}</select></div>
+    <div class="er"><div class="el">단계</div><select class="es" id="etStg"><option value="-1"${t.stgIdx===-1?' selected':''}>해당없음</option>${STAGES.map(s=>`<option value="${s.idx}"${t.stgIdx===s.idx?' selected':''}>${s.idx+1}.${s.nm} (${s.pct}%)</option>`).join('')}</select></div>
+    <div class="er"><div class="el">시작일</div><input class="ei" type="date" id="etStart" value="${startDt}"></div>
+    <div class="er"><div class="el">종료일</div><input class="ei" type="date" id="etEnd" value="${endDt}"></div>
+    <div class="er"><div class="el">진행률</div><div class="sw"><input type="range" min="0" max="100" value="${prog}" id="etProg" oninput="document.getElementById('etProgV').textContent=this.value+'%'"><div class="sv" id="etProgV">${prog}%</div></div></div>
+    <div class="er"><div class="el">상태</div><select class="es" id="etDone"><option value="0"${!t.done?' selected':''}>미완료</option><option value="1"${t.done?' selected':''}>완료</option></select></div>
+    <div class="er"><div class="el">비고</div><textarea class="ei" id="etNote" rows="2">${t.note||''}</textarea></div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn bo" onclick="closeM()">취소</button><button class="btn bp" style="flex:1" onclick="saveTask(${id})">저장</button></div>`;
+  document.getElementById('moBg').classList.add('show');
+}
+function saveTask(id){
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  t.title=document.getElementById('etTitle').value.trim()||t.title;
+  t.cityId=+document.getElementById('etCity').value;
+  t.sysId=+document.getElementById('etSys').value;
+  t.stgIdx=+document.getElementById('etStg').value;
+  t.startDt=document.getElementById('etStart').value;
+  t.endDt=document.getElementById('etEnd').value||t.startDt;
+  t.date=t.startDt;
+  t.progress=+document.getElementById('etProg').value;
+  const wasDone=t.done;
+  t.done=document.getElementById('etDone').value==='1'||t.progress>=100;
+  if(t.done&&t.progress<100)t.progress=100;
+  if(!wasDone&&t.done)t.doneDate=fmtD(new Date());
+  if(wasDone&&!t.done)t.doneDate='';
+  t.note=document.getElementById('etNote').value.trim();
+  closeM();rDaily();toast('수정되었습니다');
+}
+
+function rWeekChart(){
+  const ctx=document.getElementById('weekChart').getContext('2d');if(weekChartInst)weekChartInst.destroy();
+  const today=new Date();const labels=[],planData=[],doneData=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(today.getTime()-i*864e5);const ds=fmtD(d);
+    labels.push((d.getMonth()+1)+'/'+d.getDate());
+    const dt=tasks.filter(t=>{const sd=t.startDt||t.date;const ed=t.endDt||t.date;return ds>=sd&&ds<=ed});
+    planData.push(dt.length);doneData.push(dt.filter(t=>t.done).length);
+  }
+  weekChartInst=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'계획',data:planData,backgroundColor:'#93c5fd',borderRadius:4,barPercentage:.5},{label:'실적',data:doneData,backgroundColor:'#4ade80',borderRadius:4,barPercentage:.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:9},boxWidth:8,padding:8}}},scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:9},stepSize:1},grid:{color:'#f3f4f6'}}}}});
+}
+
+// ========== ADMIN: 시스템 관리 ==========
+function rAdSys(){
+  document.getElementById('sysMgrTitle').textContent=`시스템 목록 (${SYSTEMS.length}건)`;
+  const el=document.getElementById('sysMgrList');
+  if(SYSTEMS.length===0){el.innerHTML='<div class="cd" style="text-align:center;color:var(--g400);font-size:11px;padding:20px">등록된 시스템이 없습니다</div>';return}
+  let h=`<div class="cd"><div class="tbl-wrap"><table class="tbl compact"><thead><tr><th class="l">시스템명</th><th class="l">정식명</th><th>소관부처</th><th>인천 단계</th><th>전남광주 단계</th><th>작업</th></tr></thead><tbody>`;
+  SYSTEMS.forEach(s=>{
+    const inS=stage[0]&&stage[0][s.id]?STAGES[stage[0][s.id].stage]:STAGES[0];
+    const jgS=stage[1]&&stage[1][s.id]?STAGES[stage[1][s.id].stage]:STAGES[0];
+    h+=`<tr><td class="l">${s.nm}</td><td class="l" style="font-size:9px;color:var(--g500)">${s.full}</td><td style="font-size:9px">${s.dp}</td>
+      <td><span class="stage-cell s${inS.idx}" style="font-size:8px">${inS.idx+1}.${inS.nm}</span></td>
+      <td><span class="stage-cell s${jgS.idx}" style="font-size:8px">${jgS.idx+1}.${jgS.nm}</span></td>
+      <td><div style="display:flex;gap:3px;justify-content:center"><button class="ib" onclick="editSystem(${s.id})">✎</button><button class="ib x" onclick="delSystem(${s.id})">✕</button></div></td></tr>`;
+  });
+  h+=`</tbody></table></div></div>`;
+  el.innerHTML=h;
+}
+
+function showAddSystem(){
+  document.getElementById('moBody').innerHTML=`<div class="mo-bar"></div><div class="mo-t">시스템 등록</div>
+    <div class="er"><div class="el">약칭</div><input class="ei" id="nsSh" placeholder="예: 시도새올"></div>
+    <div class="er"><div class="el">정식명</div><input class="ei" id="nsNm" placeholder="예: 지방행정공통시스템"></div>
+    <div class="er"><div class="el">소관부처</div><input class="ei" id="nsDp" placeholder="예: 행정안전부"></div>
+    <div style="font-size:9px;color:var(--g400);margin:6px 0">등록 시 두 도시 모두에 자동으로 '요청' 단계로 추가됩니다.</div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn bo" onclick="closeM()">취소</button><button class="btn bp" style="flex:1" onclick="addSystem()">등록</button></div>`;
+  document.getElementById('moBg').classList.add('show');
+}
+function addSystem(){
+  const sh=document.getElementById('nsSh').value.trim();
+  const nm=document.getElementById('nsNm').value.trim()||sh;
+  if(!sh){toast('약칭을 입력하세요');return}
+  const dp=document.getElementById('nsDp').value.trim();
+  const newId=sysNextId++;
+  SYSTEMS.push({id:newId,nm:sh,full:nm,dp});
+  CITIES.forEach(c2=>{
+    stage[c2.id][newId]=_blankStage(c2.id,newId);
+    docStatus[c2.id][newId]={};docFiles[c2.id][newId]={};
+    DOCS.forEach(d=>{docStatus[c2.id][newId][d.id]=0;docFiles[c2.id][newId][d.id]=[]});
+  });
+  closeM();rAdSys();toast('시스템이 등록되었습니다');
+}
+function editSystem(id){
+  const s=SYSTEMS.find(x=>x.id===id);if(!s)return;
+  document.getElementById('moBody').innerHTML=`<div class="mo-bar"></div><div class="mo-t">시스템 수정</div>
+    <div class="er"><div class="el">약칭</div><input class="ei" id="esSh" value="${s.nm}"></div>
+    <div class="er"><div class="el">정식명</div><input class="ei" id="esNm" value="${s.full||''}"></div>
+    <div class="er"><div class="el">소관부처</div><input class="ei" id="esDp" value="${s.dp||''}"></div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn bo" onclick="closeM()">취소</button><button class="btn bp" style="flex:1" onclick="saveSystem(${id})">저장</button></div>`;
+  document.getElementById('moBg').classList.add('show');
+}
+function saveSystem(id){
+  const s=SYSTEMS.find(x=>x.id===id);if(!s)return;
+  s.nm=document.getElementById('esSh').value.trim()||s.nm;
+  s.full=document.getElementById('esNm').value.trim()||s.nm;
+  s.dp=document.getElementById('esDp').value.trim();
+  closeM();rAdSys();toast('수정되었습니다');
+}
+function delSystem(id){
+  if(!confirm('이 시스템을 삭제하시겠습니까?\n관련 단계·산출물·이슈 데이터는 유지되지만 시스템 항목에서 분리됩니다.'))return;
+  SYSTEMS=SYSTEMS.filter(s=>s.id!==id);
+  CITIES.forEach(c2=>{delete stage[c2.id][id];delete docStatus[c2.id][id];delete docFiles[c2.id][id]});
+  issues.forEach(i=>{if(i.sysId===id)i.sysId=-1});
+  tasks.forEach(t=>{if(t.sysId===id)t.sysId=-1});
+  events.forEach(e=>{if(e.sysId===id)e.sysId=-1});
+  rAdSys();toast('시스템이 삭제되었습니다');
+}
+
+// ========== ADMIN: 단계별 진척 ==========
+function rAdStg(){
+  document.getElementById('stgCityChips').innerHTML=CITIES.map((c2,i)=>`<div class="chip${i===stgCity?' on '+(i===0?'inch':'jg'):''}" onclick="stgCity=${i};rAdStg()">${c2.nm}</div>`).join('');
+  document.getElementById('stgSysChips').innerHTML=SYSTEMS.map(s=>`<div class="chip${s.id===stgSys?' on':''}" onclick="stgSys=${s.id};rAdStg()">${s.nm}</div>`).join('');
+  const sys=SYSTEMS.find(s=>s.id===stgSys)||SYSTEMS[0];
+  if(!sys){document.getElementById('stgEditArea').innerHTML='';return}
+  const st=stage[stgCity][sys.id];
+  const curSg=STAGES[st.stage];
+  let h=`<div class="cd">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span class="badge ${stgCity===0?'b-inch':'b-jg'}" style="font-size:11px">${CITIES[stgCity].nm}</span>
+      <span style="font-size:13px;font-weight:800">${sys.nm}</span>
+      <span style="font-size:9px;color:var(--g400)">${sys.full}</span>
+    </div>
+    <div style="background:${curSg.color}15;border-radius:8px;padding:10px;text-align:center;margin-bottom:10px">
+      <div style="font-size:9px;color:${curSg.color};font-weight:700">현재 단계</div>
+      <div style="font-size:16px;font-weight:800;color:${curSg.color}">${st.stage+1}. ${curSg.nm} (${curSg.pct}%)</div>
+    </div>
+    <div class="er"><div class="el">전체 시작일</div><input class="ei" type="date" id="stgAllSt" value="${st.startDt||''}" onchange="stage[stgCity][${sys.id}].startDt=this.value"></div>
+    <div class="er"><div class="el">전체 종료일</div><input class="ei" type="date" id="stgAllEd" value="${st.endDt||''}" onchange="stage[stgCity][${sys.id}].endDt=this.value"></div>
+    <div class="er"><div class="el">현재단계</div><select class="es" id="stgCur" onchange="setStgCur(${stgCity},${sys.id},+this.value)">${STAGES.map(sg=>`<option value="${sg.idx}"${sg.idx===st.stage?' selected':''}>${sg.idx+1}.${sg.nm} (${sg.pct}%)</option>`).join('')}</select></div>
+    <div style="font-size:10px;font-weight:700;margin:10px 0 6px">6단계 세부 진척</div>`;
+  STAGES.forEach((sg,i)=>{
+    const ss=st.stages[i];
+    h+=`<div style="background:${i===st.stage?sg.color+'10':'var(--g50)'};border-radius:8px;padding:8px;margin-bottom:6px;border-left:3px solid ${sg.color}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:11px;font-weight:700;color:${sg.color}">${i+1}. ${sg.nm} <span style="color:var(--g400);font-weight:500">${sg.pct}%</span></div>
+        <select class="es" style="width:auto;font-size:10px;padding:3px 6px" onchange="stage[stgCity][${sys.id}].stages[${i}].status=this.value;rDash()"><option${ss.status==='대기'?' selected':''}>대기</option><option${ss.status==='진행'?' selected':''}>진행</option><option${ss.status==='완료'?' selected':''}>완료</option></select>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:4px">
+        <input class="ei" type="date" value="${ss.startDt||''}" style="font-size:10px" placeholder="시작일" onchange="stage[stgCity][${sys.id}].stages[${i}].startDt=this.value">
+        <input class="ei" type="date" value="${ss.endDt||''}" style="font-size:10px" placeholder="종료일" onchange="stage[stgCity][${sys.id}].stages[${i}].endDt=this.value">
+      </div>
+      <input class="ei" value="${ss.note||''}" style="font-size:10px" placeholder="비고/메모" onchange="stage[stgCity][${sys.id}].stages[${i}].note=this.value">
+    </div>`;
+  });
+  h+=`<div style="text-align:right;margin-top:10px"><button class="btn bg" onclick="rDash();toast('대시보드에 반영되었습니다')">저장 및 반영</button></div></div>`;
+  document.getElementById('stgEditArea').innerHTML=h;
+}
+function setStgCur(cityId,sysId,val){
+  stage[cityId][sysId].stage=val;
+  // 단계 이하는 자동 완료/진행 처리
+  for(let i=0;i<=val;i++){if(stage[cityId][sysId].stages[i].status==='대기')stage[cityId][sysId].stages[i].status=i<val?'완료':'진행'}
+  for(let i=val+1;i<STAGES.length;i++){if(stage[cityId][sysId].stages[i].status==='완료')stage[cityId][sysId].stages[i].status='대기'}
+  rAdStg();
+}
+
+// ========== ADMIN: 행사·보고 ==========
+function rAdEvt(){
+  const el=document.getElementById('evtTbl');
+  let h=`<thead><tr><th class="l">행사명</th><th>유형</th><th>일시</th><th>도시</th><th>시스템</th><th>담당</th><th>작업</th></tr></thead><tbody>`;
+  if(events.length===0)h+=`<tr><td colspan="7" style="color:var(--g400);padding:16px">등록된 행사가 없습니다</td></tr>`;
+  events.sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
+    const city=e.cityId>=0?CITIES[e.cityId]:null;
+    const sys=e.sysId>=0?SYSTEMS.find(x=>x.id===e.sysId):null;
+    h+=`<tr><td class="l">${e.title}${e.note?'<div style="font-size:8.5px;color:var(--g500);margin-top:2px">'+e.note+'</div>':''}</td>
+      <td><span class="badge" style="background:#ede9fe;color:#7c3aed">${e.type}</span></td>
+      <td>${e.date}${e.time?'<br><span style="font-size:8.5px;color:var(--g500)">'+e.time+'</span>':''}</td>
+      <td>${city?`<span class="badge ${city.id===0?'b-inch':'b-jg'}">${city.sh}</span>`:'<span class="badge b-w">통합</span>'}</td>
+      <td style="font-size:9px">${sys?sys.nm:'-'}</td>
+      <td style="font-size:9px">${e.owner||'-'}</td>
+      <td><div style="display:flex;gap:3px;justify-content:center"><button class="ib" onclick="editEvt(${e.id})">✎</button><button class="ib x" onclick="delEvt(${e.id})">✕</button></div></td></tr>`;
+  });
+  h+=`</tbody>`;
+  el.innerHTML=h;
+}
+function showAddEvt(){_evtForm()}
+function editEvt(id){const e=events.find(x=>x.id===id);if(!e)return;_evtForm(e)}
+function _evtForm(e){
+  const isNew=!e;
+  if(isNew)e={title:'',type:'단계별보고',date:fmtD(new Date()),time:'',cityId:-1,sysId:-1,owner:'',location:'',note:''};
+  document.getElementById('moBody').innerHTML=`<div class="mo-bar"></div><div class="mo-t">${isNew?'행사 등록':'행사 수정'}</div>
+    <div class="er"><div class="el">행사명</div><input class="ei" id="evT" value="${e.title}" placeholder="예: 단계별 보고회"></div>
+    <div class="er"><div class="el">유형</div><select class="es" id="evType">${EVT_TYPES.map(t=>`<option${e.type===t?' selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="er"><div class="el">날짜</div><input class="ei" type="date" id="evDate" value="${e.date}"></div>
+    <div class="er"><div class="el">시간</div><input class="ei" type="time" id="evTime" value="${e.time||''}"></div>
+    <div class="er"><div class="el">도시</div><select class="es" id="evCity"><option value="-1"${e.cityId===-1?' selected':''}>통합(공통)</option>${CITIES.map(c2=>`<option value="${c2.id}"${e.cityId===c2.id?' selected':''}>${c2.nm}</option>`).join('')}</select></div>
+    <div class="er"><div class="el">시스템</div><select class="es" id="evSys"><option value="-1"${e.sysId===-1?' selected':''}>해당없음</option>${SYSTEMS.map(s=>`<option value="${s.id}"${e.sysId===s.id?' selected':''}>${s.nm}</option>`).join('')}</select></div>
+    <div class="er"><div class="el">담당</div><input class="ei" id="evOwner" value="${e.owner||''}" placeholder="담당부서/담당자"></div>
+    <div class="er"><div class="el">장소</div><input class="ei" id="evLoc" value="${e.location||''}" placeholder="회의장소"></div>
+    <div class="er"><div class="el">비고</div><textarea class="ei" id="evNote" rows="2">${e.note||''}</textarea></div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn bo" onclick="closeM()">취소</button><button class="btn bp" style="flex:1" onclick="${isNew?'addEvt()':'saveEvt('+e.id+')'}">${isNew?'등록':'저장'}</button></div>`;
+  document.getElementById('moBg').classList.add('show');
+}
+function _readEvtForm(){return{title:document.getElementById('evT').value.trim(),type:document.getElementById('evType').value,date:document.getElementById('evDate').value,time:document.getElementById('evTime').value,cityId:+document.getElementById('evCity').value,sysId:+document.getElementById('evSys').value,owner:document.getElementById('evOwner').value.trim(),location:document.getElementById('evLoc').value.trim(),note:document.getElementById('evNote').value.trim()}}
+function addEvt(){const d=_readEvtForm();if(!d.title){toast('행사명을 입력하세요');return}events.push({id:evtNextId++,...d});closeM();rAdEvt();toast('행사가 등록되었습니다')}
+function saveEvt(id){const e=events.find(x=>x.id===id);if(!e)return;Object.assign(e,_readEvtForm());closeM();rAdEvt();toast('수정되었습니다')}
+function delEvt(id){if(!confirm('이 행사를 삭제하시겠습니까?'))return;events=events.filter(x=>x.id!==id);rAdEvt();toast('삭제되었습니다')}
+
+// ========== ADMIN: 추진내용 일정 ==========
+function rAdSch(){
+  const el=document.getElementById('schEditTbl');
+  let h=`<thead><tr><th class="l" style="min-width:120px">추진내용</th><th style="min-width:90px">기간</th><th style="min-width:70px">담당</th><th style="min-width:60px">상태</th><th style="min-width:50px">진행률</th><th style="min-width:100px">비고</th><th>작업</th></tr></thead><tbody>`;
+  if(scheduleRows.length===0)h+=`<tr><td colspan="7" style="color:var(--g400);padding:16px">행이 없습니다. 우측 상단의 '+행 추가' 버튼을 누르세요.</td></tr>`;
+  scheduleRows.forEach(r=>{
+    h+=`<tr>
+      <td class="l"><input value="${r.item||''}" data-id="${r.id}" data-f="item" placeholder="추진내용"></td>
+      <td><input value="${r.period||''}" data-id="${r.id}" data-f="period" placeholder="2026.05"></td>
+      <td><input value="${r.owner||''}" data-id="${r.id}" data-f="owner"></td>
+      <td><select data-id="${r.id}" data-f="status">${['대기','진행','완료','지연','보류'].map(s=>`<option${r.status===s?' selected':''}>${s}</option>`).join('')}</select></td>
+      <td><input type="number" min="0" max="100" value="${r.progress||0}" data-id="${r.id}" data-f="progress" style="text-align:center"></td>
+      <td><input value="${r.note||''}" data-id="${r.id}" data-f="note"></td>
+      <td><div style="display:flex;gap:3px;justify-content:center"><button class="ib" onclick="moveSchRow(${r.id},-1)" title="위로">▲</button><button class="ib" onclick="moveSchRow(${r.id},1)" title="아래로">▼</button><button class="ib x" onclick="delSchRow(${r.id})" title="삭제">✕</button></div></td>
+    </tr>`;
+  });
+  h+=`</tbody>`;
+  el.innerHTML=h;
+}
+function addSchRow(){scheduleRows.push({id:schNextId++,item:'',period:'',owner:'',status:'대기',progress:0,note:''});rAdSch();toast('행이 추가되었습니다')}
+function delSchRow(id){if(!confirm('이 행을 삭제하시겠습니까?'))return;scheduleRows=scheduleRows.filter(r=>r.id!==id);rAdSch();toast('삭제되었습니다')}
+function moveSchRow(id,dir){const idx=scheduleRows.findIndex(r=>r.id===id);const ni=idx+dir;if(ni<0||ni>=scheduleRows.length)return;const t=scheduleRows[idx];scheduleRows[idx]=scheduleRows[ni];scheduleRows[ni]=t;rAdSch()}
+function saveSchTable(){
+  const inputs=document.querySelectorAll('#schEditTbl input, #schEditTbl select');
+  inputs.forEach(inp=>{
+    const id=+inp.dataset.id,f=inp.dataset.f;if(!id)return;
+    const r=scheduleRows.find(x=>x.id===id);if(!r)return;
+    if(f==='progress')r[f]=+inp.value;
+    else r[f]=inp.value;
+  });
+  rAdSch();toast('저장되었습니다 — 대시보드에도 반영됩니다');
+}
+
+// ========== ADMIN: 이슈 관리 ==========
+function rAdIss(){
+  const el=document.getElementById('issFilterPill');
+  const modes=[{k:'all',l:'전체'},{k:'미해결',l:'미해결'},{k:'진행중',l:'진행중'},{k:'해결완료',l:'해결완료'}];
+  el.innerHTML=modes.map(m=>{const on=issFilterSt===m.k;return`<div class="pill${on?' on':''}" onclick="issFilterSt='${m.k}';rAdIss()">${m.l}</div>`}).join('');
+  let list=[...issues];
+  if(issFilterSt!=='all')list=list.filter(x=>x.status===issFilterSt);
+  list.sort((a,b)=>{if(a.status==='해결완료'&&b.status!=='해결완료')return 1;if(a.status!=='해결완료'&&b.status==='해결완료')return -1;return b.date.localeCompare(a.date)});
+  const el2=document.getElementById('issueListAdmin');
+  if(list.length===0){el2.innerHTML='<div class="cd" style="text-align:center;color:var(--g400);font-size:11px;padding:14px">이슈가 없습니다</div>';return}
+  el2.innerHTML=list.map(iss=>renderIssCard(iss,true)).join('');
+}
+function showAddIssue(){_issForm()}
+function editIssue(id){const i=issues.find(x=>x.id===id);if(!i)return;_issForm(i)}
+function _issForm(iss){
+  const isNew=!iss;
+  const td=fmtD(new Date());
+  if(isNew)iss={title:'',cityId:0,sysId:-1,priority:'중간',status:'미해결',startDt:td,endDt:td,date:td,progress:0,desc:'',plan:'',resolvedDate:''};
+  document.getElementById('moBody').innerHTML=`<div class="mo-bar"></div><div class="mo-t">${isNew?'이슈 등록':'이슈 수정'}</div>
+    <div class="er"><div class="el">제목</div><input class="ei" id="isT" value="${iss.title}"></div>
+    <div class="er"><div class="el">도시</div><select class="es" id="isC">${CITIES.map(c2=>`<option value="${c2.id}"${iss.cityId===c2.id?' selected':''}>${c2.nm}</option>`).join('')}</select></div>
+    <div class="er"><div class="el">시스템</div><select class="es" id="isS"><option value="-1"${iss.sysId===-1?' selected':''}>전체(공통)</option>${SYSTEMS.map(s=>`<option value="${s.id}"${iss.sysId===s.id?' selected':''}>${s.nm}</option>`).join('')}</select></div>
+    <div class="er"><div class="el">우선순위</div><select class="es" id="isP">${ISS_PRIORITIES.map(p=>`<option${iss.priority===p?' selected':''}>${p}</option>`).join('')}</select></div>
+    <div class="er"><div class="el">상태</div><select class="es" id="isSt">${ISS_STATUSES.map(s=>`<option${iss.status===s?' selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="er"><div class="el">시작일</div><input class="ei" type="date" id="isStart" value="${iss.startDt||td}"></div>
+    <div class="er"><div class="el">종료일</div><input class="ei" type="date" id="isEnd" value="${iss.endDt||td}"></div>
+    <div class="er"><div class="el">진행률</div><div class="sw"><input type="range" min="0" max="100" value="${iss.progress||0}" id="isProg" oninput="document.getElementById('isProgV').textContent=this.value+'%'"><div class="sv" id="isProgV">${iss.progress||0}%</div></div></div>
+    <div class="er"><div class="el">상세</div><textarea class="ei" id="isDesc" rows="2">${iss.desc||''}</textarea></div>
+    <div class="er"><div class="el">조치계획</div><textarea class="ei" id="isPlan" rows="2">${iss.plan||''}</textarea></div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn bo" onclick="closeM()">취소</button><button class="btn bp" style="flex:1;background:var(--red)" onclick="${isNew?'addIssue()':'saveIssue('+iss.id+')'}">${isNew?'등록':'저장'}</button></div>`;
+  document.getElementById('moBg').classList.add('show');
+}
+function _readIss(){return{title:document.getElementById('isT').value.trim(),cityId:+document.getElementById('isC').value,sysId:+document.getElementById('isS').value,priority:document.getElementById('isP').value,status:document.getElementById('isSt').value,startDt:document.getElementById('isStart').value,endDt:document.getElementById('isEnd').value,progress:+document.getElementById('isProg').value,desc:document.getElementById('isDesc').value.trim(),plan:document.getElementById('isPlan').value.trim()}}
+function addIssue(){const d=_readIss();if(!d.title){toast('제목을 입력하세요');return}issues.push({id:issNextId++,...d,date:d.startDt,resolvedDate:d.status==='해결완료'?fmtD(new Date()):''});closeM();rAdIss();toast('이슈가 등록되었습니다')}
+function saveIssue(id){const iss=issues.find(x=>x.id===id);if(!iss)return;const d=_readIss();const wasSt=iss.status;Object.assign(iss,d);iss.date=iss.startDt;if(wasSt!=='해결완료'&&iss.status==='해결완료'){iss.resolvedDate=fmtD(new Date());if(iss.progress<100)iss.progress=100}if(wasSt==='해결완료'&&iss.status!=='해결완료')iss.resolvedDate='';closeM();rAdIss();toast('수정되었습니다')}
+function resolveIssue(id){const iss=issues.find(x=>x.id===id);if(!iss)return;iss.status='해결완료';iss.resolvedDate=fmtD(new Date());iss.progress=100;rAdIss();toast('해결완료 처리되었습니다')}
+function reopenIssue(id){const iss=issues.find(x=>x.id===id);if(!iss)return;iss.status='미해결';iss.resolvedDate='';rAdIss();toast('재오픈되었습니다')}
+function delIssue(id){if(!confirm('이 이슈를 삭제하시겠습니까?'))return;issues=issues.filter(x=>x.id!==id);rAdIss();toast('삭제되었습니다')}
+
+// ========== ADMIN: 산출물 ==========
+function rAdDoc(){
+  document.getElementById('docCityChips').innerHTML=CITIES.map((c2,i)=>`<div class="chip${i===docCity?' on '+(i===0?'inch':'jg'):''}" onclick="docCity=${i};rAdDoc()">${c2.nm}</div>`).join('');
+  document.getElementById('docSysChips').innerHTML=SYSTEMS.map((s,i)=>`<div class="chip${i===docSysIdx?' on':''}" onclick="docSysIdx=${i};rAdDoc()">${s.nm}</div>`).join('');
+  if(SYSTEMS.length===0)return;
+  if(docSysIdx>=SYSTEMS.length)docSysIdx=0;
+  const s=SYSTEMS[docSysIdx];
+  const st=getDocStats(docCity,s.id);
+  document.getElementById('docSummary').innerHTML=`<div class="cd"><div style="display:flex;gap:6px">
+    <div style="flex:1;background:var(--g50);border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:${c(st.pct)}">${st.pct}%</div><div style="font-size:8px;color:var(--g500)">완료율</div></div>
+    <div style="flex:1;background:var(--g50);border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--grn)">${st.done}</div><div style="font-size:8px;color:var(--g500)">완료</div></div>
+    <div style="flex:1;background:var(--g50);border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--org)">${st.wip+st.review}</div><div style="font-size:8px;color:var(--g500)">작성/검토</div></div>
+    <div style="flex:1;background:var(--g50);border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--pri)">${st.total}</div><div style="font-size:8px;color:var(--g500)">전체</div></div>
+  </div></div>`;
+  document.getElementById('docList').innerHTML=DOCS.map((d,idx)=>{
+    const v=docStatus[docCity][s.id][d.id]||0;
+    const files=docFiles[docCity][s.id][d.id]||[];
+    return`<div class="adm-doc-card"><div style="display:flex;align-items:flex-start;gap:8px">
+      <div style="width:22px;height:22px;border-radius:50%;background:var(--g100);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">${idx+1}</div>
+      <div style="flex:1"><div style="font-size:11px;font-weight:600">${d.nm}</div>
+        <div style="margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <select class="es" style="width:auto;font-size:9px;padding:3px 6px" onchange="setDocSt(${docCity},${s.id},${d.id},+this.value)">${DOC_STATUSES.map((nm,i)=>`<option value="${i}"${v===i?' selected':''}>${nm}</option>`).join('')}</select>
+        </div>
+        ${files.length>0?`<div style="margin-top:6px">${files.map((f,fi)=>`<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px"><span class="badge b-r">${f.name} (${f.size})</span><button class="btn bp bs" onclick="downloadDocFile(${docCity},${s.id},${d.id},${fi})">↓</button><button class="ib x" onclick="rmDocFile(${docCity},${s.id},${d.id},${fi})">✕</button></div>`).join('')}</div>`:''}
+      </div>
+      <label class="btn bt bs" style="cursor:pointer;position:relative;overflow:hidden">파일 등록<input type="file" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="uploadDocFile(${docCity},${s.id},${d.id},this)" multiple></label>
+    </div></div>`;
+  }).join('');
+}
+function getDocStats(cityId,sysId){
+  let total=0,done=0,wip=0,review=0,req=0,none=0;
+  DOCS.forEach(d=>{
+    const v=docStatus[cityId][sysId][d.id]||0;total++;
+    if(v===4)done++;else if(v===3)review++;else if(v===2)wip++;else if(v===1)req++;else none++;
+  });
+  return{total,done,wip,review,req,none,pct:total?Math.round(done/total*100):0};
+}
+function setDocSt(cityId,sysId,docId,v){docStatus[cityId][sysId][docId]=v;rAdDoc();toast(DOC_STATUSES[v]+' 으로 변경')}
+function uploadDocFile(cityId,sysId,docId,input){
+  if(!input.files||input.files.length===0)return;
+  Array.from(input.files).forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const sizeStr=file.size<1024?file.size+'B':file.size<1048576?Math.round(file.size/1024)+'KB':Math.round(file.size/1048576*10)/10+'MB';
+      docFiles[cityId][sysId][docId].push({name:file.name,size:sizeStr,date:fmtD(new Date()),dataUrl:e.target.result,type:file.type});
+      if((docStatus[cityId][sysId][docId]||0)===0)docStatus[cityId][sysId][docId]=2;
+      rAdDoc();toast(file.name+' 등록 완료');
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+}
+function downloadDocFile(cityId,sysId,docId,fi){const f=docFiles[cityId][sysId][docId][fi];if(!f)return;const a=document.createElement('a');a.href=f.dataUrl;a.download=f.name;document.body.appendChild(a);a.click();document.body.removeChild(a)}
+function rmDocFile(cityId,sysId,docId,fi){if(!confirm('파일을 삭제하시겠습니까?'))return;docFiles[cityId][sysId][docId].splice(fi,1);rAdDoc()}
+function downloadAllFiles(){const s=SYSTEMS[docSysIdx];let cnt=0;DOCS.forEach(d=>{(docFiles[docCity][s.id][d.id]||[]).forEach(f=>{setTimeout(()=>{const a=document.createElement('a');a.href=f.dataUrl;a.download=f.name;document.body.appendChild(a);a.click();document.body.removeChild(a)},cnt*300);cnt++})});if(cnt===0){toast('등록된 파일이 없습니다');return}toast(cnt+'개 파일 다운로드')}
+function showDocMgr(){
+  document.getElementById('moBody').innerHTML=`<div class="mo-bar"></div><div class="mo-t">산출물 목록 관리</div>
+    <div style="background:var(--g50);border-radius:8px;padding:10px;margin-bottom:10px">
+      <div class="er" style="margin:0"><div class="el">산출물명</div><input class="ei" id="ndNm" placeholder="산출물 이름"><button class="btn bt bs" onclick="addDocItem()">추가</button></div>
+    </div>
+    <div id="docMgrList"></div>
+    <div style="margin-top:10px;text-align:right"><button class="btn bp" onclick="closeM();rAdDoc()">닫기</button></div>`;
+  rDocMgrList();
+  document.getElementById('moBg').classList.add('show');
+}
+function rDocMgrList(){
+  const el=document.getElementById('docMgrList');if(!el)return;
+  el.innerHTML=`<div class="cd-t">목록 (${DOCS.length}건)</div>`+DOCS.map((d,i)=>`<div class="fi"><span style="font-size:9px;color:var(--g400);width:20px;text-align:center">${i+1}</span><span class="fn" style="font-size:10px">${d.nm}</span><div style="display:flex;gap:2px"><button class="ib" style="width:20px;height:20px;font-size:9px${i===0?';opacity:.2;pointer-events:none':''}" onclick="moveDoc(${i},-1)">▲</button><button class="ib" style="width:20px;height:20px;font-size:9px${i===DOCS.length-1?';opacity:.2;pointer-events:none':''}" onclick="moveDoc(${i},1)">▼</button><button class="ib" style="width:20px;height:20px" onclick="editDocItem(${d.id})">✎</button><button class="ib x" style="width:20px;height:20px" onclick="delDocItem(${d.id})">✕</button></div></div>`).join('');
+}
+function addDocItem(){const nm=document.getElementById('ndNm').value.trim();if(!nm){toast('산출물명을 입력하세요');return}const newId=docNextId++;DOCS.push({id:newId,nm});CITIES.forEach(c2=>{SYSTEMS.forEach(s=>{docStatus[c2.id][s.id][newId]=0;docFiles[c2.id][s.id][newId]=[]})});document.getElementById('ndNm').value='';rDocMgrList();toast('추가되었습니다')}
+function editDocItem(id){const d=DOCS.find(x=>x.id===id);if(!d)return;const nm=prompt('산출물명 수정:',d.nm);if(nm&&nm.trim()){d.nm=nm.trim();rDocMgrList();toast('수정되었습니다')}}
+function delDocItem(id){if(!confirm('이 산출물을 삭제하시겠습니까?'))return;DOCS.splice(DOCS.findIndex(x=>x.id===id),1);CITIES.forEach(c2=>{SYSTEMS.forEach(s=>{delete docStatus[c2.id][s.id][id];delete docFiles[c2.id][s.id][id]})});rDocMgrList();toast('삭제되었습니다')}
+function moveDoc(fr,dir){const to=fr+dir;if(to<0||to>=DOCS.length)return;const t=DOCS[fr];DOCS[fr]=DOCS[to];DOCS[to]=t;rDocMgrList()}
+
+// ========== REPORT ==========
+let rptStgCh=null,rptCmpCh=null;
+function rReport(){
+  document.getElementById('rptDt').textContent=`기준일: ${fmtD(new Date())} | 게시 예정: 2026-07-01 09:00 | 관리주체: 데이터전환 사업단`;
+  const inA=cityAvg(0),jgA=cityAvg(1),avA=overallAvg();
+  document.getElementById('rptG').innerHTML=`
+    <div class="rb"><div class="rb-v" style="color:var(--red)">${dds()}</div><div class="rb-l">서비스 개시까지</div></div>
+    <div class="rb"><div class="rb-v" style="color:var(--pri)">${avA}%</div><div class="rb-l">통합 평균</div></div>
+    <div class="rb"><div class="rb-v" style="color:var(--inch)">${inA}%</div><div class="rb-l">인천시</div></div>
+    <div class="rb"><div class="rb-v" style="color:var(--jg)">${jgA}%</div><div class="rb-l">전남광주</div></div>`;
+
+  // Stage dist chart
+  const ctx=document.getElementById('rptStg').getContext('2d');if(rptStgCh)rptStgCh.destroy();
+  const datasets=STAGES.map(sg=>({label:`${sg.idx+1}.${sg.nm}`,data:CITIES.map(c2=>SYSTEMS.filter(s=>stage[c2.id][s.id].stage===sg.idx).length),backgroundColor:sg.color,borderRadius:2}));
+  rptStgCh=new Chart(ctx,{type:'bar',data:{labels:CITIES.map(c2=>c2.nm),datasets},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:8},boxWidth:8,padding:4}}},scales:{x:{stacked:true,ticks:{font:{size:9},stepSize:1},grid:{color:'#f3f4f6'}},y:{stacked:true,ticks:{font:{size:10,weight:'bold'}},grid:{display:false}}}}});
+
+  const ctx2=document.getElementById('rptCmp').getContext('2d');if(rptCmpCh)rptCmpCh.destroy();
+  rptCmpCh=new Chart(ctx2,{type:'bar',data:{labels:SYSTEMS.map(s=>s.nm),datasets:CITIES.map(c2=>({label:c2.nm,data:SYSTEMS.map(s=>stagePct(c2.id,s.id)),backgroundColor:c2.color,borderRadius:4,barPercentage:.7}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:9},boxWidth:10}}},scales:{x:{ticks:{font:{size:8},maxRotation:45},grid:{display:false}},y:{max:100,ticks:{font:{size:9}},grid:{color:'#f3f4f6'}}}}});
+
+  // Risk
+  let rl,ri,rd2,rc2;
+  if(avA>=70){rl='낮음';ri='🟢';rd2='전체적으로 양호한 진행 상황';rc2='var(--grn)'}
+  else if(avA>=50){rl='보통';ri='🟡';rd2='일부 시스템 일정 관리 필요';rc2='var(--org)'}
+  else{rl='높음';ri='🔴';rd2='준비 진척 부족, 집중 관리 필요';rc2='var(--red)'}
+  document.getElementById('riskG').innerHTML=`<div style="font-size:24px">${ri}</div><div style="flex:1"><div style="font-size:12px;font-weight:700;color:${rc2}">리스크: ${rl}</div><div style="font-size:10px;color:var(--g500);margin-top:1px">${rd2} (평균 ${avA}%)</div></div>`;
+
+  // System tables (per city)
+  document.getElementById('rptSysInch').innerHTML=_rptSysTable(0);
+  document.getElementById('rptSysJg').innerHTML=_rptSysTable(1);
+
+  // Issues
+  const open=issues.filter(x=>x.status!=='해결완료'),res=issues.filter(x=>x.status==='해결완료');
+  document.getElementById('rptIssTitle').textContent=`이슈 및 조치계획 현황 (미결 ${open.length}건 / 해결 ${res.length}건)`;
+  let issH=`<div style="display:flex;gap:6px;margin-bottom:8px">
+    <div style="flex:1;background:#fef2f2;border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--red)">${open.length}</div><div style="font-size:8px;color:var(--g500)">미결</div></div>
+    <div style="flex:1;background:#f0fdf4;border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--grn)">${res.length}</div><div style="font-size:8px;color:var(--g500)">해결</div></div>
+    <div style="flex:1;background:var(--pri-l);border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--pri)">${issues.length}</div><div style="font-size:8px;color:var(--g500)">전체</div></div>
+  </div>`;
+  issH+=open.map(i=>renderIssCard(i,false)).join('');
+  if(res.length>0){issH+=`<div style="font-size:10px;font-weight:700;color:var(--grn);margin:8px 0 4px">■ 해결 완료</div>`;issH+=res.slice(0,5).map(i=>renderIssCard(i,false)).join('')}
+  document.getElementById('rptIssList').innerHTML=issH;
+
+  // Events
+  const td=fmtD(new Date());
+  const upc=events.filter(e=>e.date>=td).sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('rptEvtList').innerHTML=upc.length===0?'<div style="font-size:11px;color:var(--g400);text-align:center;padding:8px">예정된 행사 없음</div>':upc.map(e=>renderEvtCard(e)).join('');
+
+  // Schedule table (full)
+  let sh=`<thead><tr><th class="l">추진내용</th><th>기간</th><th>담당</th><th>상태</th><th>진척</th><th class="l">비고</th></tr></thead><tbody>`;
+  scheduleRows.forEach(r=>{
+    const stCls=r.status==='완료'?'b-d':r.status==='진행'?'b-r':r.status==='지연'?'b-i':'b-w';
+    sh+=`<tr><td class="l">${r.item||''}</td><td>${r.period||''}</td><td>${r.owner||''}</td><td><span class="badge ${stCls}">${r.status||''}</span></td><td style="color:${c(r.progress||0)};font-weight:700">${r.progress||0}%</td><td class="l" style="font-size:9px;color:var(--g500)">${r.note||''}</td></tr>`;
+  });
+  sh+=`</tbody>`;
+  document.getElementById('rptSchTbl').innerHTML=sh;
+
+  // Milestones
+  document.getElementById('rptMS').innerHTML=`<div style="position:absolute;left:5px;top:0;bottom:0;width:2px;background:var(--g200)"></div>${MS.map(m=>`<div style="position:relative;padding:0 0 10px 18px"><div style="position:absolute;left:0;top:2px;width:12px;height:12px;border-radius:50%;border:2px solid ${m.ok?'var(--grn)':'var(--g300)'};background:${m.ok?'var(--grn)':'#fff'}"></div><div style="font-size:9px;color:var(--g400);font-weight:600">${m.d}</div><div style="font-size:11px;font-weight:600;${m.ok?'color:var(--g400);text-decoration:line-through':''}">${m.t}</div></div>`).join('')}`;
+}
+
+function _rptSysTable(cityId){
+  let h=`<thead><tr><th class="l">시스템</th><th>현재 단계</th><th>진척률</th><th>시작</th><th>종료</th></tr></thead><tbody>`;
+  SYSTEMS.forEach(s=>{
+    const st=stage[cityId][s.id];const sg=STAGES[st.stage];
+    h+=`<tr><td class="l">${s.nm}</td><td><span class="stage-cell s${sg.idx}" style="font-size:8.5px">${sg.idx+1}.${sg.nm}</span></td><td style="color:${c(sg.pct)};font-weight:700">${sg.pct}%</td><td style="font-size:9px">${st.startDt||'-'}</td><td style="font-size:9px">${st.endDt||'-'}</td></tr>`;
+  });
+  h+=`</tbody>`;
+  return h;
+}
+
+function closeM(){document.getElementById('moBg').classList.remove('show')}
+</script>
+</body>
+</html>

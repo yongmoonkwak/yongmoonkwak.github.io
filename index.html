@@ -82,11 +82,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans
 .stage-cell.s2{background:#3b82f6}
 .stage-cell.s3{background:#6366f1}
 .stage-cell.s4{background:#8b5cf6}
-.stage-cell.s5{background:#a855f7}
-.stage-cell.s6{background:#c084fc}
-.stage-cell.s7{background:#ec4899}
-.stage-cell.s8{background:#f59e0b}
-.stage-cell.s9{background:#10b981}
+.stage-cell.s5{background:#f59e0b}
+.stage-cell.s6{background:#10b981}
 .stage-pct{font-size:9px;font-weight:800;text-align:center}
 
 /* Stage detail bar */
@@ -422,7 +419,7 @@ textarea.ei{resize:vertical;min-height:48px;font-family:inherit}
   <div id="ad-stg" style="display:none">
     <div class="cd" style="padding:8px 12px">
       <div class="cd-t" style="margin-bottom:4px">단계별 진척 관리</div>
-      <div style="font-size:10px;color:var(--g500);line-height:1.4">시스템과 도시를 선택한 후 진행단계(프로그램 개발→데이터셋 유통→1차/2차 모의전환→설명회 및 현장점검→시나리오 확정→오픈 및 안정화)의 시작일·종료일·상태를 등록합니다.</div>
+      <div style="font-size:10px;color:var(--g500);line-height:1.4">시스템과 도시를 선택한 후 7개 진행단계의 시작일·종료일·상태를 등록합니다.<br><span style="color:var(--pri);font-weight:600">⚓ 5~7단계(설명회·시나리오 확정·오픈)는 도시 내 모든 시스템에 동일 일정이 자동 적용됩니다.</span></div>
     </div>
     <div class="cd">
       <div class="cd-t">도시 선택</div>
@@ -524,7 +521,7 @@ textarea.ei{resize:vertical;min-height:48px;font-family:inherit}
 <script>
 // ========== LOGIN ==========
 const USERS=[
-  {id:'admin',pw:'#chindo0701!',nm:'관리자',role:'admin'},
+  {id:'admin',pw:'#rhkrdydans1',nm:'관리자',role:'admin'},
   {id:'omcom',pw:'#chindo0701!',nm:'OMCOM',role:'user'}
 ];
 let curUser=null;
@@ -581,17 +578,21 @@ const CITIES=[
 ];
 
 // 진행단계 워크플로 (진행단계 / 진행 상세단계 / 진행율)
+// shared:true 단계는 도시 내 모든 시스템이 동일한 일정·상태를 공유
 const STAGES=[
   {idx:0,nm:'프로그램 개발',detail:'프로그램 자체테스트 및 전환프로그램 검증',pct:50,color:'#94a3b8'},
   {idx:1,nm:'개편 전환 데이터셋 유통',detail:'개편 전환 데이터셋 유통',pct:60,color:'#fb923c'},
   {idx:2,nm:'1차 모의전환',detail:'1차 모의전환(기능점검)',pct:70,color:'#3b82f6'},
   {idx:3,nm:'2차 모의전환',detail:'2차 모의전환(서비스 점검)',pct:82,color:'#6366f1'},
-  {idx:4,nm:'설명회 및 현장점검',detail:'업무담당자 합동점검회의(1차)',pct:85,color:'#8b5cf6'},
-  {idx:5,nm:'설명회 및 현장점검',detail:'최종점검회의(1차)',pct:80,color:'#a855f7'},
-  {idx:6,nm:'설명회 및 현장점검',detail:'업무담당자 합동점검회의(2차)',pct:85,color:'#c084fc'},
-  {idx:7,nm:'설명회 및 현장점검',detail:'최종점검회의(2차)',pct:90,color:'#ec4899'},
-  {idx:8,nm:'전환 시나리오 확정',detail:'전환 시나리오 확정',pct:92,color:'#f59e0b'},
-  {idx:9,nm:'오픈 및 안정화',detail:'오픈 및 안정화',pct:100,color:'#10b981'}
+  {idx:4,nm:'설명회 및 현장점검',detail:'합동점검·최종점검회의(총 4회)',pct:90,color:'#8b5cf6',shared:true,
+    subs:[
+      {nm:'업무담당자 합동점검회의(1차)',pct:85},
+      {nm:'최종점검회의(1차)',pct:80},
+      {nm:'업무담당자 합동점검회의(2차)',pct:85},
+      {nm:'최종점검회의(2차)',pct:90}
+    ]},
+  {idx:5,nm:'전환 시나리오 확정',detail:'전환 시나리오 확정',pct:92,color:'#f59e0b',shared:true},
+  {idx:6,nm:'오픈 및 안정화',detail:'오픈 및 안정화',pct:100,color:'#10b981',shared:true}
 ];
 
 const EVT_TYPES=['단계별보고','중간보고','최종보고','회의','발표','기타'];
@@ -855,7 +856,7 @@ function rDash(){
   document.getElementById('matrixTbl').innerHTML=h;
 
   // Stage legend
-  document.getElementById('stgLeg').innerHTML=STAGES.map(s=>`<span class="si" style="background:${s.color}" title="${s.detail||s.nm}">${s.idx+1}.${s.nm} ${s.pct}%</span>`).join('');
+  document.getElementById('stgLeg').innerHTML=STAGES.map(s=>`<span class="si" style="background:${s.color}" title="${s.detail||s.nm}${s.shared?' (공유 단계)':''}">${s.idx+1}.${s.nm} ${s.pct}%${s.shared?' ⚓':''}</span>`).join('');
 
   // Stage dist chart (stacked bar per city)
   const ctx=document.getElementById('stageDistChart').getContext('2d');
@@ -991,15 +992,25 @@ function showStageDetail(cityId,sysId){
     h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--g100)${active?';background:'+sg.color+'10':''}">
       <div style="width:22px;height:22px;border-radius:50%;background:${ss.status==='완료'?sg.color:active?sg.color:'var(--g200)'};color:${ss.status==='완료'||active?'#fff':'var(--g500)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${i+1}</div>
       <div style="flex:1">
-        <div style="font-size:11px;font-weight:600">${sg.nm} <span style="color:var(--g400);font-weight:500">(${sg.pct}%)</span></div>
+        <div style="font-size:11px;font-weight:600">${sg.nm} <span style="color:var(--g400);font-weight:500">(${sg.pct}%)</span>${sg.shared?'<span class="badge b-r" style="font-size:7.5px;margin-left:4px;padding:1px 4px">공유</span>':''}</div>
         ${sg.detail&&sg.detail!==sg.nm?`<div style="font-size:9px;color:var(--g500);font-weight:500">└ ${sg.detail}</div>`:''}
         <div style="font-size:9px;color:var(--g500)">${ss.startDt||'-'} ~ ${ss.endDt||'-'}</div>
+        ${sg.subs?`<div style="margin-top:3px">${sg.subs.map(sub=>`<div style="font-size:8.5px;color:var(--g500);padding-left:4px">▸ ${sub.nm} <span style="color:var(--g400)">(${sub.pct}%)</span></div>`).join('')}</div>`:''}
         ${ss.note?`<div style="font-size:9px;color:var(--g600);margin-top:2px">${ss.note}</div>`:''}
       </div>
       <span class="badge ${stCls}">${ss.status}</span>
     </div>`;
   });
-  if(isAdmin())h+=`<div style="text-align:right;margin-top:10px"><button class="btn bp bs" onclick="closeDp();go('admin');setTimeout(()=>{goAdminSub('stg');stgCity=${cityId};stgSys=${sysId};rAdStg()},100)">관리 페이지에서 편집</button></div>`;
+  if(isAdmin())h+=`<div style="margin-top:12px;padding:10px;background:var(--pri-l);border-radius:8px;border:1px solid #c7d2fe">
+      <div style="font-size:10px;font-weight:700;color:var(--pri);margin-bottom:6px">⚙ 현재 진행단계 변경</div>
+      <select class="es" style="width:100%;font-size:11px;padding:8px;background:#fff" onchange="changeSysStage(${cityId},${sysId},+this.value)">
+        ${STAGES.map(sg=>`<option value="${sg.idx}"${sg.idx===st.stage?' selected':''}>${sg.idx+1}. ${sg.nm} (${sg.pct}%)</option>`).join('')}
+      </select>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn bo bs" style="flex:1" onclick="closeDp()">닫기</button>
+        <button class="btn bp bs" style="flex:1" onclick="closeDp();go('admin');setTimeout(()=>{goAdminSub('stg');stgCity=${cityId};stgSys=${sysId};rAdStg()},100)">상세 편집</button>
+      </div>
+    </div>`;
   document.getElementById('dpBody').innerHTML=h;
   document.getElementById('dpBg').classList.add('show');
 }
@@ -1268,13 +1279,15 @@ function rAdStg(){
     h+=`<div style="background:${i===st.stage?sg.color+'10':'var(--g50)'};border-radius:8px;padding:8px;margin-bottom:6px;border-left:3px solid ${sg.color}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
         <div style="font-size:11px;font-weight:700;color:${sg.color}">${i+1}. ${sg.nm} <span style="color:var(--g400);font-weight:500">${sg.pct}%</span>${sg.detail&&sg.detail!==sg.nm?`<div style="font-size:9px;color:var(--g500);font-weight:500;margin-top:1px">└ ${sg.detail}</div>`:''}</div>
-        <select class="es" style="width:auto;font-size:10px;padding:3px 6px" onchange="stage[stgCity][${sys.id}].stages[${i}].status=this.value;rDash()"><option${ss.status==='대기'?' selected':''}>대기</option><option${ss.status==='진행'?' selected':''}>진행</option><option${ss.status==='완료'?' selected':''}>완료</option></select>
+        <select class="es" style="width:auto;font-size:10px;padding:3px 6px" onchange="stage[stgCity][${sys.id}].stages[${i}].status=this.value;if(STAGES[${i}].shared)syncSharedStage(stgCity,${i},'status',this.value);rDash()"><option${ss.status==='대기'?' selected':''}>대기</option><option${ss.status==='진행'?' selected':''}>진행</option><option${ss.status==='완료'?' selected':''}>완료</option></select>
       </div>
       <div style="display:flex;gap:6px;margin-bottom:4px">
-        <input class="ei" type="date" value="${ss.startDt||''}" style="font-size:10px" placeholder="시작일" onchange="stage[stgCity][${sys.id}].stages[${i}].startDt=this.value">
-        <input class="ei" type="date" value="${ss.endDt||''}" style="font-size:10px" placeholder="종료일" onchange="stage[stgCity][${sys.id}].stages[${i}].endDt=this.value">
+        <input class="ei" type="date" value="${ss.startDt||''}" style="font-size:10px" placeholder="시작일" onchange="stage[stgCity][${sys.id}].stages[${i}].startDt=this.value;if(STAGES[${i}].shared)syncSharedStage(stgCity,${i},'startDt',this.value)">
+        <input class="ei" type="date" value="${ss.endDt||''}" style="font-size:10px" placeholder="종료일" onchange="stage[stgCity][${sys.id}].stages[${i}].endDt=this.value;if(STAGES[${i}].shared)syncSharedStage(stgCity,${i},'endDt',this.value)">
       </div>
-      <input class="ei" value="${ss.note||''}" style="font-size:10px" placeholder="비고/메모" onchange="stage[stgCity][${sys.id}].stages[${i}].note=this.value">
+      <input class="ei" value="${ss.note||''}" style="font-size:10px" placeholder="비고/메모" onchange="stage[stgCity][${sys.id}].stages[${i}].note=this.value;if(STAGES[${i}].shared)syncSharedStage(stgCity,${i},'note',this.value)">
+      ${STAGES[i].shared?`<div style="font-size:9px;color:var(--pri);margin-top:4px;font-weight:600">⚓ 공유 단계 — 도시 내 모든 시스템에 동일 일정 적용</div>`:''}
+      ${STAGES[i].subs?`<div style="margin-top:6px;padding:6px 8px;background:#fff;border-radius:6px;border:1px dashed var(--g300)"><div style="font-size:9px;font-weight:700;color:var(--g600);margin-bottom:3px">세부 점검 항목 (총 ${STAGES[i].subs.length}회)</div>${STAGES[i].subs.map((sub,si)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:${si<STAGES[i].subs.length-1?'1px dashed var(--g100)':'none'};font-size:9.5px"><span>${si+1}. ${sub.nm}</span><span style="font-weight:700;color:${sub.pct>=85?'var(--grn)':'var(--org)'}">${sub.pct}%</span></div>`).join('')}</div>`:''}
     </div>`;
   });
   h+=`<div style="text-align:right;margin-top:10px"><button class="btn bg" onclick="rDash();toast('대시보드에 반영되었습니다')">저장 및 반영</button></div></div>`;
@@ -1286,6 +1299,24 @@ function setStgCur(cityId,sysId,val){
   for(let i=0;i<=val;i++){if(stage[cityId][sysId].stages[i].status==='대기')stage[cityId][sysId].stages[i].status=i<val?'완료':'진행'}
   for(let i=val+1;i<STAGES.length;i++){if(stage[cityId][sysId].stages[i].status==='완료')stage[cityId][sysId].stages[i].status='대기'}
   rAdStg();
+}
+// 대시보드 팝업에서 진행단계 즉시 변경
+function changeSysStage(cityId,sysId,val){
+  if(!isAdmin()){toast('관리자만 변경 가능합니다');return}
+  stage[cityId][sysId].stage=val;
+  for(let i=0;i<=val;i++){if(stage[cityId][sysId].stages[i].status==='대기')stage[cityId][sysId].stages[i].status=i<val?'완료':'진행'}
+  for(let i=val+1;i<STAGES.length;i++){if(stage[cityId][sysId].stages[i].status==='완료')stage[cityId][sysId].stages[i].status='대기'}
+  rDash();
+  showStageDetail(cityId,sysId);
+  toast('진행단계 변경: '+STAGES[val].nm);
+}
+// 공유 단계(설명회·시나리오 확정·오픈)는 도시 내 모든 시스템에 동일 적용
+function syncSharedStage(cityId,stgIdx,field,value){
+  if(!STAGES[stgIdx]||!STAGES[stgIdx].shared)return;
+  SYSTEMS.forEach(s=>{
+    const st=stage[cityId][s.id];if(!st||!st.stages[stgIdx])return;
+    st.stages[stgIdx][field]=value;
+  });
 }
 
 // ========== ADMIN: 행사·보고 ==========

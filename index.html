@@ -304,6 +304,7 @@ textarea.ei{resize:vertical;min-height:48px;font-family:inherit}
 <div class="hd">
   <div class="usr-bar">
     <span id="usrInfo">사용자: -</span>
+    <span id="saveStatus" style="font-size:8.5px;opacity:.7;margin-left:auto;margin-right:6px"></span>
     <button class="logout" onclick="doLogout()">로그아웃</button>
   </div>
   <div class="hd-t">행정체제 개편 통합 진척관리</div>
@@ -320,6 +321,7 @@ textarea.ei{resize:vertical;min-height:48px;font-family:inherit}
 
 <div class="tabs" id="mainTabs">
   <div class="tab on" onclick="go('dash')">대시보드</div>
+  <div class="tab" onclick="go('mock')">모의전환</div>
   <div class="tab" onclick="go('daily')">일일관리</div>
   <div class="tab admin-tab" id="tabAdmin" onclick="go('admin')">관리</div>
   <div class="tab" onclick="go('report')">보고</div>
@@ -376,6 +378,28 @@ textarea.ei{resize:vertical;min-height:48px;font-family:inherit}
   </div>
 </div>
 
+
+<!-- ==================== MOCK (모의전환 진척) ==================== -->
+<div id="s-mock" class="sec">
+  <div class="cd">
+    <div class="cd-t">모의전환 진척 요약 (1차 / 2차 통합)</div>
+    <div id="mockSummary"></div>
+  </div>
+  <div class="cd" style="padding:8px 12px">
+    <div class="cd-t" style="margin-bottom:6px">도시 필터</div>
+    <div class="chips" id="mockCityChips"></div>
+  </div>
+  <div class="cd" style="padding:8px 12px">
+    <div class="cd-t" style="margin-bottom:6px">1차 모의전환 일정 (간트)</div>
+    <div id="mockGantt1"></div>
+  </div>
+  <div class="cd" style="padding:8px 12px">
+    <div class="cd-t" style="margin-bottom:6px">2차 모의전환 일정 (간트)</div>
+    <div id="mockGantt2"></div>
+  </div>
+  <div id="mockSysList"></div>
+</div>
+
 <!-- ==================== DAILY ==================== -->
 <div id="s-daily" class="sec">
   <div class="cd"><div class="cal" id="calArea"></div></div>
@@ -402,6 +426,7 @@ textarea.ei{resize:vertical;min-height:48px;font-family:inherit}
     <div class="sub-tab" onclick="goAdminSub('sch')">추진일정</div>
     <div class="sub-tab" onclick="goAdminSub('iss')">이슈 관리</div>
     <div class="sub-tab" onclick="goAdminSub('doc')">산출물</div>
+    <div class="sub-tab" onclick="goAdminSub('bak')">백업</div>
   </div>
 
   <!-- 시스템 관리 -->
@@ -495,6 +520,9 @@ textarea.ei{resize:vertical;min-height:48px;font-family:inherit}
     </div>
     <div id="docList"></div>
   </div>
+
+  <!-- 백업/복원 -->
+  <div id="ad-bak" style="display:none"></div>
 </div>
 
 <!-- ==================== REPORT ==================== -->
@@ -576,6 +604,52 @@ const CITIES=[
   {id:0,nm:'인천시',sh:'인천',color:'#1a56db',icon:'IC'},
   {id:1,nm:'전남광주특별시',sh:'전남광주',color:'#0d9488',icon:'JG'}
 ];
+
+// 시스템별 1차/2차 모의전환 계획 (HWPX 첨부파일 기준)
+let MOCK_DATA={
+  0:{ // 인천시
+    0:{first:{startDt:'2026-05-20',endDt:'2026-06-02',startTime:'18:00',endTime:'22:00',note:'인천 중구·동구→제물포구·서해구·검단구 데이터 이관, 암복호화 KEY 일치화'},
+       second:{startDt:'',endDt:'',note:'스크립트 보완 후 ~6.16. 2차 모의전환 예정 (일정 확정 전)'}},
+    1:{first:{startDt:'2026-06-08',endDt:'2026-06-08',startTime:'09:00',endTime:'22:00',note:'지방선거(6.3.) 대비 사전 준비·지원 후 수행. 동구 송현1·2동, 중구 신흥동·영종1동, 서구 불로대곡동·검암경서동 자료'},
+       second:{startDt:'',endDt:'',note:'2차 모의전환 일정 미정'}},
+    2:{first:{startDt:'2026-05-28',endDt:'2026-05-29',startTime:'10:00',endTime:'10:00',note:'서버(AP·DB) 운영환경 점검, 운영DB 백업·전환·시스템 기동·기능점검'},
+       second:{startDt:'',endDt:'',note:'2차 모의전환 일정 미정'}},
+    3:{first:{startDt:'2026-05-19',endDt:'2026-05-19',startTime:'10:00',endTime:'18:00',note:'검증서버에서 전환 스크립트 실행, 도로명코드 전후조서 데이터 사전 제공'},
+       second:{startDt:'',endDt:'',note:'2차 모의전환 일정 미정'}},
+    4:{first:{startDt:'2026-05-26',endDt:'2026-05-28',startTime:'09:00',endTime:'18:00',note:'인천광역시 행정구역개편 모의 1차 전환 (사업구조화·공통관리·지방채·계약대장)'},
+       second:{startDt:'2026-06-15',endDt:'2026-06-17',startTime:'09:00',endTime:'18:00',note:'2024.1.1.~2025.12.31. 자료 활용(27개 시군구), 1차 이슈 분석·조치 후 2차 전환'}},
+    5:{first:{startDt:'2026-05-27',endDt:'2026-05-27',startTime:'10:00',endTime:'17:00',note:'각 구청 맵핑자료 검토, 검증서버에서 자료 전환·집계표 출력'},
+       second:{startDt:'',endDt:'',note:'2차 모의전환 일정 미정'}},
+    6:{first:{startDt:'2026-04-01',endDt:'2026-05-31',startTime:'',endTime:'',note:'1차 모의전환 완료 (자료는 2차 사전준비에서 구 자치단체 코드로 원복하여 사용)'},
+       second:{startDt:'2026-06-04',endDt:'2026-06-05',startTime:'10:00',endTime:'06:00',note:'(지방세) 2천만건 이하 544+이상 24테이블 갱신, (위택스) 2천만건 이하 114+이상 7테이블 갱신, 자치단체 현장 운영 테스트(~6.12.)'}},
+    7:{first:{startDt:'2026-06-11',endDt:'2026-06-11',startTime:'13:00',endTime:'22:00',note:'표준코드 매핑테이블 생성, 차세대 지방세·재정·세외수입·새올행정 데이터전환 및 연계서비스 확인'},
+       second:{startDt:'',endDt:'',note:'2차 모의전환 일정 미정'}},
+    8:{first:{startDt:'2026-06-01',endDt:'2026-06-19',startTime:'09:00',endTime:'18:00',note:'민원인 접수 차단·배치작업 중지, 자료백업·전환(~6.16.), AP 배포·시스템 점검(~6.19.)'},
+       second:{startDt:'',endDt:'',note:'2차 모의전환 일정 미정'}}
+  },
+  1:{ // 전남광주특별시
+    0:{first:{startDt:'2026-06-02',endDt:'2026-06-10',startTime:'09:00',endTime:'18:00',note:'테스트환경 구축(5.21~6.5), 광주 백업파일→전남 운영DB 이관, 데이터 전환 및 AP 기능테스트(27종)'},
+       second:{startDt:'2026-06-13',endDt:'2026-06-14',startTime:'09:00',endTime:'22:00',note:'운영서버 실제 전환 시간 측정 및 이슈 사전 도출, 시도행정 업무 중단 필요'}},
+    1:{first:{startDt:'2026-06-08',endDt:'2026-06-08',startTime:'15:00',endTime:'22:00',note:'광주 북구·전남 여수 주민등록 자료 점검·전환·검증'},
+       second:{startDt:'',endDt:'',note:'2차 모의전환 일정 미정'}},
+    2:{first:{startDt:'2026-06-08',endDt:'2026-06-10',startTime:'10:00',endTime:'10:00',note:'서버 점검, 운영데이터 백업·이관·통합/전환, 시스템 기동·기능점검 (자료 통합 포함)'},
+       second:{startDt:'',endDt:'',note:'2차 모의전환 일정 미정'}},
+    3:{first:{startDt:'2026-05-28',endDt:'2026-05-28',startTime:'10:00',endTime:'18:00',note:'검증서버에서 전환 스크립트 실행, 오류 데이터 보정 및 결과 확인'},
+       second:{startDt:'',endDt:'',note:'2차 모의전환 일정 미정'}},
+    4:{first:{startDt:'2026-05-21',endDt:'2026-06-01',startTime:'09:00',endTime:'18:00',note:'전남/광주 통합 1차 전환(2025.1.1~6.30. 자료), 산하 27개 시군구 모의전환, 임의코드 적용'},
+       second:{startDt:'2026-06-08',endDt:'2026-06-19',startTime:'09:00',endTime:'18:00',note:'2차 모의전환 (2024.1.1.~2025.12.31. 자료), 신규 부여 행정표준코드 적용, 본청·시군구 결과 검증'}},
+    5:{first:{startDt:'2026-06-06',endDt:'2026-06-06',startTime:'10:00',endTime:'18:00',note:'전남·광주 맵핑자료 검토, 검증서버에서 자료 전환·집계표 확인'},
+       second:{startDt:'',endDt:'',note:'2차 모의전환 일정 미정'}},
+    6:{first:{startDt:'2026-05-28',endDt:'2026-06-01',startTime:'07:00',endTime:'07:00',note:'(지방세) 대량 544 / (위택스) 대량 114 테이블 백업·변환, 소량 테이블 변환, 인덱스 생성'},
+       second:{startDt:'',endDt:'',note:'2차 모의전환 일정 미정'}},
+    7:{first:{startDt:'2026-06-16',endDt:'2026-06-16',startTime:'18:00',endTime:'22:00',note:'광주 광역DB 이관 포함, 표준코드 매핑테이블 생성, 차세대 시스템 자료 전환·점검'},
+       second:{startDt:'',endDt:'',note:'2차 모의전환 일정 미정'}},
+    8:{first:{startDt:'2026-06-08',endDt:'2026-06-19',startTime:'09:00',endTime:'18:00',note:'(전남·광주) 민원인 접수 차단·배치작업 중지, 자료백업·전환(~6.12.), AP 배포·시스템 점검(6.18.~6.19.)'},
+       second:{startDt:'',endDt:'',note:'2차 모의전환 일정 미정'}}
+  }
+};
+let mockCityFilter='all';
+
 
 // 진행단계 워크플로 (진행단계 / 진행 상세단계 / 진행율)
 // shared:true 단계는 도시 내 모든 시스템이 동일한 일정·상태를 공유
@@ -746,11 +820,172 @@ function _setStageData(cityId,sysId,curStg,startDt,endDt){
   }
 }
 
+
+// ========== PERSISTENCE (자동 저장 / 백업·복원) ==========
+const STORAGE_KEY='admin_reform_data_v1';
+
+function saveState(silent){
+  try{
+    const state={
+      _savedAt:new Date().toISOString(),
+      MOCK_DATA,stage,
+      events,evtNextId,
+      scheduleRows,schNextId,
+      issues,issNextId,
+      tasks,taskId,
+      SYSTEMS,sysNextId,
+      DOCS,docNextId,
+      docStatus
+      // docFiles는 첨부 파일 base64 용량 문제로 자동 저장 제외
+    };
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+    const el=document.getElementById('saveStatus');
+    if(el)el.textContent='💾 저장됨 '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+    if(!silent)toast('저장되었습니다');
+    return true;
+  }catch(e){
+    console.error('saveState',e);
+    const el=document.getElementById('saveStatus');
+    if(el)el.textContent='⚠ 저장 실패';
+    if(!silent)toast('저장 실패: '+e.message);
+    return false;
+  }
+}
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return false;
+    const state=JSON.parse(raw);
+    if(state.MOCK_DATA)MOCK_DATA=state.MOCK_DATA;
+    if(state.stage)stage=state.stage;
+    if(Array.isArray(state.events))events=state.events;
+    if(typeof state.evtNextId==='number')evtNextId=state.evtNextId;
+    if(Array.isArray(state.scheduleRows))scheduleRows=state.scheduleRows;
+    if(typeof state.schNextId==='number')schNextId=state.schNextId;
+    if(Array.isArray(state.issues))issues=state.issues;
+    if(typeof state.issNextId==='number')issNextId=state.issNextId;
+    if(Array.isArray(state.tasks))tasks=state.tasks;
+    if(typeof state.taskId==='number')taskId=state.taskId;
+    if(Array.isArray(state.SYSTEMS)&&state.SYSTEMS.length)SYSTEMS=state.SYSTEMS;
+    if(typeof state.sysNextId==='number')sysNextId=state.sysNextId;
+    if(Array.isArray(state.DOCS)&&state.DOCS.length)DOCS=state.DOCS;
+    if(typeof state.docNextId==='number')docNextId=state.docNextId;
+    if(state.docStatus)docStatus=state.docStatus;
+    // 누락된 시스템·산출물의 빈 구조 보강
+    CITIES.forEach(c2=>{
+      if(!docFiles[c2.id])docFiles[c2.id]={};
+      if(!docStatus[c2.id])docStatus[c2.id]={};
+      SYSTEMS.forEach(s=>{
+        if(!docFiles[c2.id][s.id])docFiles[c2.id][s.id]={};
+        if(!docStatus[c2.id][s.id])docStatus[c2.id][s.id]={};
+        DOCS.forEach(d=>{
+          if(!docFiles[c2.id][s.id][d.id])docFiles[c2.id][s.id][d.id]=[];
+          if(typeof docStatus[c2.id][s.id][d.id]!=='number')docStatus[c2.id][s.id][d.id]=0;
+        });
+      });
+    });
+    return true;
+  }catch(e){
+    console.error('loadState',e);
+    return false;
+  }
+}
+
+function exportData(){
+  saveState(true);
+  const raw=localStorage.getItem(STORAGE_KEY);
+  if(!raw){toast('저장된 데이터가 없습니다');return}
+  const blob=new Blob([raw],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='행정체제개편_백업_'+fmtD(new Date())+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('백업 파일이 다운로드되었습니다');
+}
+
+function importData(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const state=JSON.parse(e.target.result);
+      const dt=state._savedAt?new Date(state._savedAt).toLocaleString('ko-KR'):'알 수 없음';
+      if(!confirm('백업 데이터를 복원합니다.\n저장 시점: '+dt+'\n\n현재 데이터는 덮어쓰여집니다. 계속하시겠습니까?'))return;
+      localStorage.setItem(STORAGE_KEY,e.target.result);
+      loadState();
+      go('dash');
+      toast('데이터가 복원되었습니다');
+    }catch(err){
+      toast('파일 형식이 올바르지 않습니다');
+    }
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+function resetData(){
+  if(!confirm('모든 사용자 입력 데이터를 초기 샘플 값으로 되돌리시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.'))return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+function rAdBak(){
+  let savedInfo='저장된 데이터 없음';
+  let sizeKB=0;
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const state=JSON.parse(raw);
+      sizeKB=Math.round(raw.length/1024);
+      const dt=state._savedAt?new Date(state._savedAt).toLocaleString('ko-KR'):'시점 없음';
+      savedInfo='마지막 저장: <strong>'+dt+'</strong><br>저장 데이터 크기: '+sizeKB+'KB';
+    }
+  }catch(e){}
+  document.getElementById('ad-bak').innerHTML=`<div class="cd">
+    <div class="cd-t">자동 저장 상태</div>
+    <div style="background:var(--g50);border-radius:8px;padding:10px;font-size:10.5px">
+      <div style="color:var(--g700);margin-bottom:6px;line-height:1.5">${savedInfo}</div>
+      <div style="color:var(--g500);font-size:9.5px;line-height:1.6">
+        ✓ 입력한 모든 값(모의전환 일정·이슈·할일·진척단계 등)은 브라우저에 <strong>3초마다 자동 저장</strong>됩니다.<br>
+        ✓ HTML 파일을 GitHub 등에서 갱신하더라도 <strong>같은 URL로 접속하면 입력한 데이터가 유지</strong>됩니다.<br>
+        ⚠ 같은 브라우저(같은 PC·같은 도메인)에서만 유지되며, 다른 PC/사용자에게는 보이지 않습니다.<br>
+        ⚠ 산출물 첨부파일은 용량 문제로 자동 저장에서 제외됩니다.
+      </div>
+    </div>
+  </div>
+  <div class="cd">
+    <div class="cd-t">백업 파일 (다른 PC·사용자와 공유)</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn bp bk" onclick="exportData()">💾 백업 파일 다운로드</button>
+      <div style="font-size:9.5px;color:var(--g500);line-height:1.4;margin-top:-4px">현재 데이터를 JSON 파일로 내려받습니다. 다른 사용자에게 공유하거나 백업용으로 보관할 수 있습니다.</div>
+      <label class="btn bt bk" style="cursor:pointer;position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center">📂 백업 파일 복원<input type="file" accept=".json,application/json" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="importData(this)"></label>
+      <div style="font-size:9.5px;color:var(--g500);line-height:1.4;margin-top:-4px">백업한 JSON 파일을 업로드하면 현재 데이터를 덮어쓰고 복원합니다.</div>
+    </div>
+  </div>
+  <div class="cd">
+    <div class="cd-t" style="color:var(--red)">데이터 초기화 (주의)</div>
+    <button class="btn bk" style="background:#fee2e2;color:var(--red);border:1px solid #fca5a5" onclick="resetData()">🔄 모든 입력 데이터 초기화</button>
+    <div style="font-size:9.5px;color:var(--g500);line-height:1.4;margin-top:6px">자동 저장된 데이터를 모두 지우고 HTML 내장 샘플 값으로 돌아갑니다. 백업이 없다면 복구할 수 없습니다.</div>
+  </div>`;
+}
+
 function initApp(){
   if(SYSTEMS.length&&Object.keys(stage).length===0)_initData();
+  loadState(); // 저장된 데이터 복원 (있을 경우 _initData 결과를 덮어씀)
   updatePubNotice();
+  saveState(true); // 첫 저장 (시각 표시 갱신)
   go('dash');
 }
+
+// 자동 저장 트리거
+setInterval(()=>saveState(true),3000);
+window.addEventListener('beforeunload',()=>saveState(true));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveState(true)});
 
 // ========== UTILS ==========
 function fmtD(d){return d.toISOString().slice(0,10)}
@@ -780,10 +1015,11 @@ function updatePubNotice(){
 // ========== NAVIGATION ==========
 function go(id){
   if(id==='admin'&&!isAdmin()){toast('관리자만 접근 가능합니다');return}
-  document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('on',['dash','daily','admin','report'][i]===id)});
+  document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('on',['dash','mock','daily','admin','report'][i]===id)});
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
   if(id==='dash')rDash();
+  if(id==='mock')rMock();
   if(id==='daily')rDaily();
   if(id==='admin')goAdminSub(curAdminSub);
   if(id==='report')rReport();
@@ -791,7 +1027,7 @@ function go(id){
 
 function goAdminSub(id){
   curAdminSub=id;
-  const tabs=['sys','stg','evt','sch','iss','doc'];
+  const tabs=['sys','stg','evt','sch','iss','doc','bak'];
   document.querySelectorAll('#adminSubTabs .sub-tab').forEach((t,i)=>{t.classList.toggle('on',tabs[i]===id)});
   tabs.forEach(t=>{const el=document.getElementById('ad-'+t);if(el)el.style.display=t===id?'block':'none'});
   if(id==='sys')rAdSys();
@@ -800,6 +1036,7 @@ function goAdminSub(id){
   if(id==='sch')rAdSch();
   if(id==='iss')rAdIss();
   if(id==='doc')rAdDoc();
+  if(id==='bak')rAdBak();
 }
 
 // ========== DASHBOARD ==========
@@ -1015,6 +1252,261 @@ function showStageDetail(cityId,sysId){
   document.getElementById('dpBg').classList.add('show');
 }
 function closeDp(){document.getElementById('dpBg').classList.remove('show')}
+
+
+// ========== MOCK (모의전환) ==========
+function rMock(){
+  const td=fmtD(new Date());
+  // 도시 칩
+  document.getElementById('mockCityChips').innerHTML=`<div class="chip${mockCityFilter==='all'?' on':''}" onclick="mockCityFilter='all';rMock()">전체</div>`+CITIES.map((c2,i)=>`<div class="chip${mockCityFilter===i?' on '+(i===0?'inch':'jg'):''}" onclick="mockCityFilter=${i};rMock()">${c2.nm}</div>`).join('');
+
+  // 요약
+  let sm={inch:{d1:0,p1:0,n1:0,x1:0,d2:0,p2:0,n2:0,x2:0},jg:{d1:0,p1:0,n1:0,x1:0,d2:0,p2:0,n2:0,x2:0}};
+  CITIES.forEach(c2=>{
+    SYSTEMS.forEach(s=>{
+      const md=MOCK_DATA[c2.id]&&MOCK_DATA[c2.id][s.id];if(!md)return;
+      const key=c2.id===0?'inch':'jg';
+      [['first','1'],['second','2']].forEach(([k,n])=>{
+        const m=md[k];
+        if(!m||!m.startDt){sm[key]['x'+n]++;return}
+        if(m.endDt<td)sm[key]['d'+n]++;
+        else if(m.startDt<=td)sm[key]['p'+n]++;
+        else sm[key]['n'+n]++;
+      });
+    });
+  });
+  const total=SYSTEMS.length;
+  const mkCol=(k,t)=>`<div style="flex:1;background:rgba(255,255,255,.18);padding:6px 4px;border-radius:6px;text-align:center">
+    <div style="font-size:9px;font-weight:700;margin-bottom:2px">${t}</div>
+    <div style="display:flex;gap:3px;font-size:8px;justify-content:center">
+      <span style="background:#16a34a;padding:1px 4px;border-radius:3px">완료 ${sm[k]['d'+t.slice(0,1)]}</span>
+      <span style="background:#1a56db;padding:1px 4px;border-radius:3px">진행 ${sm[k]['p'+t.slice(0,1)]}</span>
+      <span style="background:#f59e0b;padding:1px 4px;border-radius:3px">예정 ${sm[k]['n'+t.slice(0,1)]}</span>
+      ${sm[k]['x'+t.slice(0,1)]>0?`<span style="background:#94a3b8;padding:1px 4px;border-radius:3px">미정 ${sm[k]['x'+t.slice(0,1)]}</span>`:''}
+    </div></div>`;
+  document.getElementById('mockSummary').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div style="background:linear-gradient(135deg,#1a56db,#3b82f6);color:#fff;padding:10px;border-radius:8px">
+      <div style="font-size:12px;font-weight:800;margin-bottom:6px">인천시 (${total}개 시스템)</div>
+      <div style="display:flex;gap:5px">${mkCol('inch','1차')}${mkCol('inch','2차')}</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;padding:10px;border-radius:8px">
+      <div style="font-size:12px;font-weight:800;margin-bottom:6px">전남광주특별시 (${total}개 시스템)</div>
+      <div style="display:flex;gap:5px">${mkCol('jg','1차')}${mkCol('jg','2차')}</div>
+    </div>
+  </div>`;
+
+  // 간트 1차/2차
+  document.getElementById('mockGantt1').innerHTML=renderMockGantt('first');
+  document.getElementById('mockGantt2').innerHTML=renderMockGantt('second');
+
+  // 시스템 카드
+  const cities=mockCityFilter==='all'?[0,1]:[mockCityFilter];
+  let html='';
+  cities.forEach(cid=>{
+    html+=`<div style="font-size:12px;font-weight:800;color:${cid===0?'var(--inch)':'var(--jg)'};margin:14px 4px 6px;display:flex;align-items:center;gap:6px"><span style="width:4px;height:14px;background:${cid===0?'var(--inch)':'var(--jg)'};border-radius:2px"></span>${CITIES[cid].nm}</div>`;
+    SYSTEMS.forEach(s=>{html+=renderMockCard(cid,s)});
+  });
+  document.getElementById('mockSysList').innerHTML=html;
+}
+
+// 간트 차트 (전체 1차 또는 2차)
+function renderMockGantt(phaseKey){
+  const td=new Date();const tdStr=fmtD(td);
+  // 표시 범위: 5/15 ~ 6/30
+  const rangeStart=new Date('2026-05-15'),rangeEnd=new Date('2026-06-30');
+  const totalDays=Math.ceil((rangeEnd-rangeStart)/864e5)+1;
+  const cities=mockCityFilter==='all'?[0,1]:[mockCityFilter];
+  let bars='';
+  cities.forEach(cid=>{
+    SYSTEMS.forEach(s=>{
+      const md=MOCK_DATA[cid]&&MOCK_DATA[cid][s.id];if(!md)return;
+      const m=md[phaseKey];
+      const label=`<span style="font-size:9px;color:${cid===0?'var(--inch)':'var(--jg)'};font-weight:700;margin-right:3px">[${cid===0?'인천':'전남광주'}]</span>${s.nm}`;
+      if(!m||!m.startDt){
+        bars+=`<div style="display:flex;align-items:center;gap:4px;padding:3px 0;font-size:9px"><div style="width:130px;flex-shrink:0">${label}</div><div style="flex:1;color:var(--g400);font-size:8.5px">일정 미정</div></div>`;
+        return;
+      }
+      const sd=parseD(m.startDt),ed=parseD(m.endDt);
+      const startDay=Math.max(0,Math.floor((sd-rangeStart)/864e5));
+      const endDay=Math.min(totalDays-1,Math.floor((ed-rangeStart)/864e5));
+      const left=(startDay/totalDays)*100,width=Math.max(1.2,((endDay-startDay+1)/totalDays)*100);
+      let cl;
+      if(m.endDt<tdStr)cl='var(--grn)';
+      else if(m.startDt<=tdStr)cl='var(--pri)';
+      else cl='var(--org)';
+      bars+=`<div style="display:flex;align-items:center;gap:4px;padding:3px 0;font-size:9px"><div style="width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</div><div style="flex:1;position:relative;height:14px;background:var(--g100);border-radius:3px"><div style="position:absolute;left:${left}%;width:${width}%;height:100%;background:${cl};border-radius:3px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;font-weight:700;overflow:hidden;white-space:nowrap" title="${m.startDt} ~ ${m.endDt}">${endDay-startDay+1}d</div></div></div>`;
+    });
+  });
+  // 날짜 헤더
+  let monthTicks='';
+  for(let d=0;d<totalDays;d+=7){
+    const dt=new Date(rangeStart.getTime()+d*864e5);
+    monthTicks+=`<div style="position:absolute;left:${(d/totalDays)*100}%;font-size:8px;color:var(--g500)">${dt.getMonth()+1}/${dt.getDate()}</div>`;
+  }
+  // 오늘 표시선
+  const todayOff=Math.floor((td-rangeStart)/864e5);
+  const todayPct=(todayOff/totalDays)*100;
+  const header=`<div style="display:flex;gap:4px;padding-bottom:6px;border-bottom:1px solid var(--g200);margin-bottom:4px"><div style="width:130px;font-size:9px;font-weight:700;color:var(--g600)">시스템</div><div style="flex:1;position:relative;height:14px">${monthTicks}${todayPct>=0&&todayPct<=100?`<div style="position:absolute;left:${todayPct}%;top:-2px;width:2px;height:18px;background:var(--red)" title="오늘"></div>`:''}</div></div>`;
+  return header+bars;
+}
+
+function renderMockCard(cityId,sys){
+  const md=MOCK_DATA[cityId]&&MOCK_DATA[cityId][sys.id];
+  const sysIssues=issues.filter(i=>i.cityId===cityId&&i.sysId===sys.id&&i.status!=='해결완료');
+  const adminBtns=isAdmin()?(md?`<button class="ib" title="수정" onclick="showEditMock(${cityId},${sys.id})" style="margin-left:4px">✎</button><button class="ib x" title="삭제" onclick="delMockData(${cityId},${sys.id})" style="margin-left:2px">✕</button>`:`<button class="btn bp bs" style="margin-left:6px;padding:3px 8px" onclick="showEditMock(${cityId},${sys.id})">+ 등록</button>`):'';
+  return `<div class="cd" style="padding:10px;margin-bottom:8px;border-left:3px solid ${cityId===0?'var(--inch)':'var(--jg)'}">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:800">${sys.nm}</div><div style="font-size:9px;color:var(--g500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sys.full} · ${sys.dp||''}</div></div>
+      <div style="display:flex;align-items:center"><span class="badge ${cityId===0?'b-inch':'b-jg'}" style="font-size:9px;margin-left:6px">${CITIES[cityId].nm}</span>${adminBtns}</div>
+    </div>
+    ${md?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      ${renderMockPhase('1차',md.first)}
+      ${renderMockPhase('2차',md.second)}
+    </div>
+    ${renderRealConv(md.real)}`:`<div style="background:var(--g50);border:1px dashed var(--g300);border-radius:6px;padding:14px;text-align:center;font-size:11px;color:var(--g400)">모의전환 정보가 등록되지 않았습니다${isAdmin()?'.<br>우측의 "+ 등록" 버튼을 누르세요.':''}</div>`}
+    ${sysIssues.length>0?`<div style="margin-top:8px;background:#fef2f2;border-radius:6px;padding:8px;border-left:2px solid var(--red)">
+      <div style="font-size:9.5px;font-weight:700;color:var(--red);margin-bottom:5px">⚠ 시스템 이슈 (${sysIssues.length}건)</div>
+      ${sysIssues.map(iss=>{
+        const priColor=iss.priority==='높음'?'var(--red)':iss.priority==='중간'?'var(--org)':'var(--pri)';
+        return `<div style="font-size:10px;font-weight:600;color:var(--g700);line-height:1.4;margin-bottom:5px;padding-left:4px;border-left:2px solid ${priColor}"><span style="font-size:8px;background:${priColor};color:#fff;padding:1px 4px;border-radius:3px;margin-right:4px">${iss.priority}</span>${iss.title}${iss.plan?`<div style="font-size:9px;color:var(--g500);font-weight:500;margin-top:2px">↳ ${iss.plan}</div>`:''}<div style="font-size:8.5px;color:var(--g400);margin-top:2px">${iss.startDt||iss.date}${iss.endDt?' ~ '+iss.endDt:''} · 진행 ${iss.progress||0}% · ${iss.status}</div></div>`;
+      }).join('')}
+    </div>`:'<div style="margin-top:8px;background:#f0fdf4;border-radius:6px;padding:6px 8px;font-size:9.5px;color:var(--grn);font-weight:600;text-align:center">✓ 미결 이슈 없음</div>'}
+  </div>`;
+}
+
+function renderMockPhase(label,phase){
+  if(!phase||!phase.startDt){
+    return `<div style="background:var(--g50);border:1px dashed var(--g300);border-radius:6px;padding:8px;min-height:90px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div style="font-size:9.5px;font-weight:700;color:var(--g400)">${label} 모의전환</div>
+        <div style="font-size:8.5px;padding:1px 6px;border-radius:8px;background:var(--g300);color:#fff;font-weight:700">미정</div>
+      </div>
+      <div style="font-size:10px;color:var(--g400);margin-top:4px">일정 미정</div>
+      ${phase&&phase.note?`<div style="font-size:9px;color:var(--g500);margin-top:4px;line-height:1.3">${phase.note}</div>`:''}
+    </div>`;
+  }
+  const td=fmtD(new Date());
+  let status,color,bg,bd;
+  if(phase.endDt<td){status='완료';color='var(--grn)';bg='#f0fdf4';bd='#bbf7d0'}
+  else if(phase.startDt<=td){
+    // 진행률 계산
+    const sd=parseD(phase.startDt),ed=parseD(phase.endDt);
+    const total=Math.max(1,(ed-sd)/864e5);
+    const elapsed=(new Date()-sd)/864e5;
+    const pct=Math.min(99,Math.max(1,Math.round(elapsed/total*100)));
+    status=`진행중 ${pct}%`;color='var(--pri)';bg='#eff6ff';bd='#bfdbfe';
+  }else{
+    const days=Math.ceil((parseD(phase.startDt)-new Date())/864e5);
+    status=`D-${days}`;color='var(--org)';bg='#fffbeb';bd='#fde68a';
+  }
+  const timeStr=phase.startTime&&phase.endTime?`${phase.startTime}~${phase.endTime}`:phase.startTime?phase.startTime+'~':'';
+  return `<div style="background:${bg};border:1px solid ${bd};border-radius:6px;padding:8px;min-height:90px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div style="font-size:9.5px;font-weight:700;color:${color}">${label} 모의전환</div>
+      <div style="font-size:8.5px;padding:1px 6px;border-radius:8px;background:${color};color:#fff;font-weight:700">${status}</div>
+    </div>
+    <div style="font-size:10.5px;font-weight:700;color:var(--g700)">${phase.startDt}${phase.endDt&&phase.endDt!==phase.startDt?' ~<br>'+phase.endDt:''}</div>
+    ${timeStr?`<div style="font-size:9px;color:var(--g500);margin-top:1px">⏰ ${timeStr}</div>`:''}
+    ${phase.elapsedTime?`<div style="font-size:9px;color:var(--prp);margin-top:3px;font-weight:700">⏱ 소요: ${phase.elapsedTime}</div>`:''}
+    ${phase.note?`<div style="font-size:9px;color:var(--g600);margin-top:5px;line-height:1.35">${phase.note}</div>`:''}
+  </div>`;
+}
+
+// 실 전환 정보 렌더링
+function renderRealConv(real){
+  if(!real||!real.startDt){
+    return `<div style="margin-top:8px;background:var(--g50);border:1px dashed var(--g300);border-radius:6px;padding:8px;text-align:center;font-size:10px;color:var(--g500)">🚀 실 전환 정보 미등록${isAdmin()?' (편집 버튼으로 등록)':''}</div>`;
+  }
+  const td=fmtD(new Date());
+  let status,color,bg,bd;
+  if(real.endDt<td){status='전환 완료';color='var(--grn)';bg='#f0fdf4';bd='#bbf7d0'}
+  else if(real.startDt<=td){status='전환 진행중';color='var(--pri)';bg='#eff6ff';bd='#bfdbfe'}
+  else{
+    const days=Math.ceil((parseD(real.startDt)-new Date())/864e5);
+    status=`실전환 D-${days}`;color='var(--red)';bg='#fef2f2';bd='#fecaca';
+  }
+  const dateStr=`${real.startDt}${real.startTime?' '+real.startTime:''}${real.endDt&&real.endDt!==real.startDt?' ~ '+real.endDt:(real.endTime?' ~':'')}${real.endTime?' '+real.endTime:''}`;
+  let haltInfo='';
+  const isHaltActive=real.haltRequired&&real.haltRequired!=='중단 없음'&&real.haltRequired!=='없음'&&real.haltRequired!=='';
+  if(isHaltActive){
+    const haltDateStr=real.haltStartDt?`${real.haltStartDt}${real.haltStartTime?' '+real.haltStartTime:''} ~ ${real.haltEndDt||real.haltStartDt}${real.haltEndTime?' '+real.haltEndTime:''}`:'';
+    haltInfo=`<div style="margin-top:6px;background:#fef2f2;border-radius:4px;padding:6px 8px;border-left:2px solid var(--red)">
+      <div style="font-size:9.5px;color:var(--red);font-weight:800">⛔ 시스템 중단: ${real.haltRequired}</div>
+      ${real.haltTarget?`<div style="font-size:9.5px;color:var(--g700);margin-top:2px"><strong>대상:</strong> ${real.haltTarget}</div>`:''}
+      ${haltDateStr?`<div style="font-size:9px;color:var(--g600);margin-top:2px"><strong>기간:</strong> ${haltDateStr}</div>`:''}
+    </div>`;
+  }else if(real.haltRequired==='중단 없음'||real.haltRequired==='없음'){
+    haltInfo=`<div style="margin-top:6px;font-size:9.5px;color:var(--grn);font-weight:600;background:#f0fdf4;padding:4px 8px;border-radius:4px">✓ 서비스 중단 없음</div>`;
+  }
+  return `<div style="margin-top:8px;background:${bg};border:1px solid ${bd};border-radius:6px;padding:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div style="font-size:10.5px;font-weight:800;color:${color}">🚀 실 전환</div>
+      <div style="font-size:8.5px;padding:1px 6px;border-radius:8px;background:${color};color:#fff;font-weight:700">${status}</div>
+    </div>
+    <div style="font-size:10.5px;font-weight:700;color:var(--g700)">${dateStr}</div>
+    ${haltInfo}
+    ${real.note?`<div style="font-size:9px;color:var(--g600);margin-top:5px;line-height:1.35">${real.note}</div>`:''}
+  </div>`;
+}
+
+// 모의전환 데이터 편집(등록·수정) 모달
+function showEditMock(cityId,sysId){
+  if(!isAdmin()){toast('관리자만 편집 가능합니다');return}
+  const sys=SYSTEMS.find(s=>s.id===sysId);
+  const md=(MOCK_DATA[cityId]&&MOCK_DATA[cityId][sysId])||{};
+  const f=md.first||{},s=md.second||{},r=md.real||{};
+  const sec=(title,prefix,d,extra)=>`<div style="background:var(--g50);border-radius:8px;padding:10px;margin-bottom:8px">
+    <div style="font-size:11px;font-weight:800;color:var(--pri);margin-bottom:6px">${title}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <div><label style="font-size:9px;color:var(--g500);font-weight:600">시작일</label><input class="ei" type="date" id="${prefix}_sd" value="${d.startDt||''}"></div>
+      <div><label style="font-size:9px;color:var(--g500);font-weight:600">종료일</label><input class="ei" type="date" id="${prefix}_ed" value="${d.endDt||''}"></div>
+      <div><label style="font-size:9px;color:var(--g500);font-weight:600">시작시간</label><input class="ei" type="time" id="${prefix}_st" value="${d.startTime||''}"></div>
+      <div><label style="font-size:9px;color:var(--g500);font-weight:600">종료시간</label><input class="ei" type="time" id="${prefix}_et" value="${d.endTime||''}"></div>
+    </div>
+    ${extra||''}
+    <div style="margin-top:6px"><label style="font-size:9px;color:var(--g500);font-weight:600">비고</label><textarea class="ei" id="${prefix}_nt" rows="2">${d.note||''}</textarea></div>
+  </div>`;
+
+  const firstExtra=`<div style="margin-top:6px"><label style="font-size:9px;color:var(--g500);font-weight:600">모의전환 결과 소요시간</label><input class="ei" id="mkf_el" value="${f.elapsedTime||''}" placeholder="예: 4시간 20분"></div>`;
+  const secondExtra=`<div style="margin-top:6px"><label style="font-size:9px;color:var(--g500);font-weight:600">모의전환 결과 소요시간</label><input class="ei" id="mks_el" value="${s.elapsedTime||''}" placeholder="예: 3시간 10분"></div>`;
+  const realExtra=`<div style="margin-top:6px"><label style="font-size:9px;color:var(--g500);font-weight:600">시스템 중단 여부</label><select class="es" id="mkr_halt"><option value=""${!r.haltRequired?' selected':''}>(선택)</option><option${r.haltRequired==='전체 중단'?' selected':''}>전체 중단</option><option${r.haltRequired==='부분 중단'?' selected':''}>부분 중단</option><option${r.haltRequired==='중단 없음'?' selected':''}>중단 없음</option></select></div>
+    <div style="margin-top:6px"><label style="font-size:9px;color:var(--g500);font-weight:600">중단 대상</label><input class="ei" id="mkr_target" value="${r.haltTarget||''}" placeholder="예: 동구 일부 시스템 / 인천·전남·광주 전체"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+      <div><label style="font-size:9px;color:var(--g500);font-weight:600">중단 시작일</label><input class="ei" type="date" id="mkr_hsd" value="${r.haltStartDt||''}"></div>
+      <div><label style="font-size:9px;color:var(--g500);font-weight:600">중단 종료일</label><input class="ei" type="date" id="mkr_hed" value="${r.haltEndDt||''}"></div>
+      <div><label style="font-size:9px;color:var(--g500);font-weight:600">중단 시작시간</label><input class="ei" type="time" id="mkr_hst" value="${r.haltStartTime||''}"></div>
+      <div><label style="font-size:9px;color:var(--g500);font-weight:600">중단 종료시간</label><input class="ei" type="time" id="mkr_het" value="${r.haltEndTime||''}"></div>
+    </div>`;
+  const cityNm=CITIES[cityId].nm;
+  document.getElementById('moBody').innerHTML=`<div class="mo-bar"></div>
+    <div class="mo-t">${cityNm} · ${sys.nm} <span style="font-size:10px;color:var(--g400);font-weight:500">모의전환 정보 ${md.first||md.real?'수정':'등록'}</span></div>
+    ${sec('1차 모의전환','mkf',f,firstExtra)}
+    ${sec('2차 모의전환','mks',s,secondExtra)}
+    ${sec('🚀 실 전환 (Production)','mkr',r,realExtra)}
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn bo" onclick="closeM()">취소</button>
+      <button class="btn bp" style="flex:1" onclick="saveMock(${cityId},${sysId})">저장</button>
+    </div>`;
+  document.getElementById('moBg').classList.add('show');
+}
+
+function saveMock(cityId,sysId){
+  const g=id=>{const e=document.getElementById(id);return e?e.value.trim():'';};
+  if(!MOCK_DATA[cityId])MOCK_DATA[cityId]={};
+  MOCK_DATA[cityId][sysId]={
+    first:{startDt:g('mkf_sd'),endDt:g('mkf_ed')||g('mkf_sd'),startTime:g('mkf_st'),endTime:g('mkf_et'),elapsedTime:g('mkf_el'),note:g('mkf_nt')},
+    second:{startDt:g('mks_sd'),endDt:g('mks_ed')||g('mks_sd'),startTime:g('mks_st'),endTime:g('mks_et'),elapsedTime:g('mks_el'),note:g('mks_nt')},
+    real:{startDt:g('mkr_sd'),endDt:g('mkr_ed')||g('mkr_sd'),startTime:g('mkr_st'),endTime:g('mkr_et'),haltRequired:g('mkr_halt'),haltTarget:g('mkr_target'),haltStartDt:g('mkr_hsd'),haltStartTime:g('mkr_hst'),haltEndDt:g('mkr_hed'),haltEndTime:g('mkr_het'),note:g('mkr_nt')}
+  };
+  closeM();rMock();toast('저장되었습니다');
+}
+
+function delMockData(cityId,sysId){
+  if(!isAdmin()){toast('관리자만 삭제 가능합니다');return}
+  if(!confirm('이 시스템의 모의전환·실 전환 정보를 모두 삭제하시겠습니까?'))return;
+  if(MOCK_DATA[cityId])delete MOCK_DATA[cityId][sysId];
+  rMock();toast('삭제되었습니다');
+}
 
 // ========== DAILY ==========
 let weekChartInst=null;

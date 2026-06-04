@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="bingbot" content="noindex, nofollow">
 <title>행정체제 개편 통합 진척관리 (인천시·전남광주특별시)</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
 <style>
@@ -548,10 +551,36 @@ textarea.ei{resize:vertical;min-height:48px;font-family:inherit}
 </div><!-- /mainApp -->
 
 <script>
+// ============================================================
+// ★★★ Firebase 실시간 동기화 설정 (모든 사용자 공통) ★★★
+//
+// 아래 null을 Firebase Console의 firebaseConfig 객체로 교체하면
+// 모든 PC·브라우저·사용자가 자동으로 같은 데이터를 공유합니다.
+//
+// 한 번만 설정하면 됩니다:
+//   1. https://console.firebase.google.com 접속, 구글 로그인
+//   2. 프로젝트 만들기 → Realtime Database 생성
+//   3. 데이터베이스 "규칙" 탭: {"rules":{".read":true,".write":true}}
+//   4. 프로젝트 설정 → 웹 앱(</>) 등록 → firebaseConfig 객체 복사
+//   5. 아래 null을 복사한 객체로 교체 → GitHub에 다시 게시
+//
+// 예시:
+//   const EMBEDDED_FIREBASE_CONFIG = {
+//     apiKey: "AIza...",
+//     authDomain: "your-project.firebaseapp.com",
+//     databaseURL: "https://your-project-default-rtdb.firebaseio.com",
+//     projectId: "your-project",
+//     storageBucket: "your-project.appspot.com",
+//     messagingSenderId: "...",
+//     appId: "..."
+//   };
+// ============================================================
+const EMBEDDED_FIREBASE_CONFIG = null;
+
 // ========== LOGIN ==========
 const USERS=[
   {id:'admin',pw:'#rhkrdydans1',nm:'관리자',role:'admin'},
-  {id:'omcom',pw:'#chindo0701!',nm:'OMCOM',role:'user'}
+  {id:'omcom',pw:'dlscjstl',nm:'OMCOM',role:'user'}
 ];
 let curUser=null;
 
@@ -847,7 +876,14 @@ function loadFirebaseSDK(cb){
   document.head.appendChild(s1);
 }
 
+function isEmbeddedConfig(){
+  return typeof EMBEDDED_FIREBASE_CONFIG==='object'&&EMBEDDED_FIREBASE_CONFIG&&EMBEDDED_FIREBASE_CONFIG.databaseURL;
+}
+
 function getFirebaseConfig(){
+  // 1순위: HTML에 내장된 EMBEDDED_FIREBASE_CONFIG (모든 사용자 공통)
+  if(isEmbeddedConfig())return EMBEDDED_FIREBASE_CONFIG;
+  // 2순위: 브라우저 localStorage 설정 (개인용)
   try{const raw=localStorage.getItem(FB_CONFIG_KEY);return raw?JSON.parse(raw):null}catch(e){return null}
 }
 
@@ -1120,20 +1156,20 @@ function rAdBak(){
 
   let fbCard;
   if(fbActive){
+    const isEmbed=isEmbeddedConfig();
     fbCard=`<div class="cd">
-      <div class="cd-t">☁ 실시간 동기화 (Firebase) <span style="font-size:9.5px;font-weight:600;color:${fbColor};margin-left:6px">${fbStatusTxt}</span></div>
+      <div class="cd-t">☁ 실시간 동기화 (Firebase) <span style="font-size:9.5px;font-weight:600;color:${fbColor};margin-left:6px">${fbStatusTxt}</span>${isEmbed?'<span style="font-size:9px;background:#ede9fe;color:#7c3aed;padding:2px 6px;border-radius:10px;margin-left:6px;font-weight:600">🔒 HTML 내장</span>':''}</div>
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:10px;border-radius:6px;font-size:10px;line-height:1.6">
         <div style="margin-bottom:4px"><strong>프로젝트:</strong> ${fbCfg.projectId||'(미상)'}</div>
         <div style="margin-bottom:4px;word-break:break-all"><strong>DB URL:</strong> <span style="font-size:9px;color:var(--g500)">${fbCfg.databaseURL}</span></div>
         <div id="bakSyncStatus" style="color:${fbColor};font-weight:600;font-size:10px;margin-top:4px">${fbStatusTxt}</div>
       </div>
       <div style="font-size:9.5px;color:var(--g500);line-height:1.5;margin-top:6px">
-        다른 PC·다른 사용자가 같은 URL로 접속하면 모든 변경사항이 <strong>자동으로 동기화</strong>됩니다.<br>
-        한 사용자가 데이터를 입력·수정·삭제하면 즉시 다른 사용자의 화면에도 반영됩니다.
+        ${isEmbed?'<strong style="color:#7c3aed">이 설정은 HTML 파일에 직접 내장되어 있어 모든 사용자가 자동으로 같은 Firebase에 연결됩니다.</strong><br>변경하려면 HTML 파일 상단의 <code>EMBEDDED_FIREBASE_CONFIG</code>를 수정 후 GitHub에 다시 게시하세요.':'다른 PC·다른 사용자가 같은 URL로 접속하면 모든 변경사항이 <strong>자동으로 동기화</strong>됩니다.<br>한 사용자가 데이터를 입력·수정·삭제하면 즉시 다른 사용자의 화면에도 반영됩니다.'}
       </div>
       <div style="display:flex;gap:6px;margin-top:8px">
         <button class="btn bo" style="flex:1" onclick="rAdBak()">상태 갱신</button>
-        <button class="btn" style="flex:1;background:#fee2e2;color:var(--red);border:1px solid #fca5a5" onclick="disconnectFirebase()">동기화 해제</button>
+        ${isEmbed?'':'<button class="btn" style="flex:1;background:#fee2e2;color:var(--red);border:1px solid #fca5a5" onclick="disconnectFirebase()">동기화 해제</button>'}
       </div>
     </div>`;
   }else{

@@ -304,7 +304,8 @@ textarea.ei{resize:vertical;min-height:48px;font-family:inherit}
 <div class="hd">
   <div class="usr-bar">
     <span id="usrInfo">사용자: -</span>
-    <span id="saveStatus" style="font-size:8.5px;opacity:.7;margin-left:auto;margin-right:6px"></span>
+    <span id="syncStatus" style="font-size:8.5px;opacity:.7;margin-left:auto;margin-right:8px"></span>
+    <span id="saveStatus" style="font-size:8.5px;opacity:.7;margin-right:6px"></span>
     <button class="logout" onclick="doLogout()">로그아웃</button>
   </div>
   <div class="hd-t">행정체제 개편 통합 진척관리</div>
@@ -824,10 +825,165 @@ function _setStageData(cityId,sysId,curStg,startDt,endDt){
 // ========== PERSISTENCE (자동 저장 / 백업·복원) ==========
 const STORAGE_KEY='admin_reform_data_v1';
 
+
+// ========== FIREBASE 실시간 동기화 ==========
+const FB_CONFIG_KEY='firebase_config_v1';
+const FB_DATA_PATH='admin_reform_data';
+let firebaseApp=null,firebaseDb=null,firebaseRef=null,firebaseListenerActive=false,firebaseConnected=false,lastPushedAt=null,fbSdkLoaded=false;
+
+function loadFirebaseSDK(cb){
+  if(fbSdkLoaded||typeof firebase!=='undefined'){fbSdkLoaded=true;cb();return}
+  const v='10.14.1';
+  const s1=document.createElement('script');
+  s1.src='https://www.gstatic.com/firebasejs/'+v+'/firebase-app-compat.js';
+  s1.onload=function(){
+    const s2=document.createElement('script');
+    s2.src='https://www.gstatic.com/firebasejs/'+v+'/firebase-database-compat.js';
+    s2.onload=function(){fbSdkLoaded=true;cb()};
+    s2.onerror=function(){updateSyncStatus('SDK 로드 실패')};
+    document.head.appendChild(s2);
+  };
+  s1.onerror=function(){updateSyncStatus('SDK 로드 실패')};
+  document.head.appendChild(s1);
+}
+
+function getFirebaseConfig(){
+  try{const raw=localStorage.getItem(FB_CONFIG_KEY);return raw?JSON.parse(raw):null}catch(e){return null}
+}
+
+function setFirebaseConfig(cfg){localStorage.setItem(FB_CONFIG_KEY,JSON.stringify(cfg))}
+
+function initFirebase(){
+  const cfg=getFirebaseConfig();
+  if(!cfg||!cfg.databaseURL){updateSyncStatus('미설정');return}
+  updateSyncStatus('연결 중...');
+  loadFirebaseSDK(function(){
+    try{
+      if(!firebaseApp){
+        firebaseApp=firebase.initializeApp(cfg);
+        firebaseDb=firebase.database();
+      }
+      firebaseRef=firebaseDb.ref(FB_DATA_PATH);
+      attachFirebaseListener();
+      // 초기 sync: 로컬과 원격 비교 후 더 새 것으로 통일
+      firebaseRef.once('value').then(function(snap){
+        const remote=snap.val();
+        const local=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+        if(!remote&&local){pushToFirebase()}
+        else if(remote&&!local){applyRemoteData(remote)}
+        else if(remote&&local){
+          if(remote._savedAt>local._savedAt)applyRemoteData(remote);
+          else if(local._savedAt>remote._savedAt)pushToFirebase();
+        }
+      }).catch(function(e){updateSyncStatus('연결 실패: '+e.message)});
+    }catch(e){console.error('initFirebase',e);updateSyncStatus('오류: '+e.message)}
+  });
+}
+
+function attachFirebaseListener(){
+  if(firebaseListenerActive||!firebaseRef)return;
+  firebaseRef.on('value',function(snap){
+    const data=snap.val();
+    if(data)applyRemoteData(data);
+  });
+  firebaseListenerActive=true;
+  // 연결 상태 모니터링
+  firebaseDb.ref('.info/connected').on('value',function(snap){
+    firebaseConnected=!!snap.val();
+    updateSyncStatus(firebaseConnected?'☁ 실시간 연결됨':'☁ 연결 끊김');
+  });
+}
+
+function applyRemoteData(remote){
+  if(!remote||!remote._savedAt)return;
+  const local=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+  if(remote._savedAt===local._savedAt)return;
+  if(remote._savedAt===lastPushedAt)return; // 우리가 보낸 echo
+  if(local._savedAt&&remote._savedAt<local._savedAt)return; // 로컬이 더 신선
+  // 모달 열려있으면 잠시 후 다시 시도 (작업 중 끊김 방지)
+  if(document.querySelector('.mo-bg.show')){
+    setTimeout(function(){applyRemoteData(remote)},3000);
+    return;
+  }
+  _lastSavedHash=null; // 다음 saveState가 새 데이터를 다시 저장하지 않도록 해시 초기화
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(remote));
+  loadState();
+  refreshCurrentView();
+  updateSyncStatus('☁ 동기화 '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
+  // 동기화 직후 _lastSavedHash를 현재 상태로 설정해 즉시 재push 방지
+  const newState={MOCK_DATA,stage,events,evtNextId,scheduleRows,schNextId,issues,issNextId,tasks,taskId,SYSTEMS,sysNextId,DOCS,docNextId,docStatus};
+  _lastSavedHash=JSON.stringify(newState);
+}
+
+function pushToFirebase(){
+  if(!firebaseRef)return;
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return;
+    const state=JSON.parse(raw);
+    lastPushedAt=state._savedAt;
+    firebaseRef.set(state).catch(function(e){console.error('pushToFirebase',e)});
+  }catch(e){console.error('pushToFirebase',e)}
+}
+
+function updateSyncStatus(msg){
+  const el=document.getElementById('syncStatus');
+  if(el)el.textContent=msg;
+  const elBak=document.getElementById('bakSyncStatus');
+  if(elBak)elBak.textContent=msg;
+}
+
+function refreshCurrentView(){
+  const sec=document.querySelector('.sec.on');
+  if(!sec)return;
+  const id=sec.id.replace('s-','');
+  if(id==='dash')rDash();
+  else if(id==='mock')rMock();
+  else if(id==='daily')rDaily();
+  else if(id==='admin')goAdminSub(curAdminSub);
+  else if(id==='report')rReport();
+}
+
+function saveFirebaseConfig(){
+  const input=document.getElementById('fbConfigInput').value.trim();
+  if(!input){toast('Firebase 설정을 입력하세요');return}
+  let cfg=null;
+  // JSON 시도
+  try{cfg=JSON.parse(input)}catch(e){}
+  // JS 객체 형식 시도 (const firebaseConfig = {...} 코드 그대로 붙여넣어도 작동)
+  if(!cfg){
+    try{
+      const m=input.match(/\{[\s\S]*\}/);
+      if(m)cfg=new Function('return '+m[0])();
+    }catch(e2){}
+  }
+  if(!cfg||typeof cfg!=='object'){toast('Firebase 설정 형식이 올바르지 않습니다');return}
+  if(!cfg.databaseURL&&cfg.projectId){
+    cfg.databaseURL='https://'+cfg.projectId+'-default-rtdb.firebaseio.com';
+  }
+  if(!cfg.databaseURL){toast('databaseURL 또는 projectId가 필요합니다');return}
+  setFirebaseConfig(cfg);
+  toast('Firebase 설정 저장됨. 동기화 시작...');
+  // 기존 연결 해제 후 재초기화
+  if(firebaseRef){try{firebaseRef.off()}catch(e){}firebaseRef=null;firebaseListenerActive=false}
+  initFirebase();
+  setTimeout(function(){rAdBak()},1500);
+}
+
+function disconnectFirebase(){
+  if(!confirm('실시간 동기화를 해제하시겠습니까?\n이후 변경사항은 다른 사용자에게 전송되지 않습니다.'))return;
+  localStorage.removeItem(FB_CONFIG_KEY);
+  if(firebaseRef){try{firebaseRef.off()}catch(e){}firebaseRef=null;firebaseListenerActive=false}
+  if(firebaseDb){try{firebaseDb.ref('.info/connected').off()}catch(e){}}
+  updateSyncStatus('미설정');
+  toast('동기화 해제됨');
+  rAdBak();
+}
+
+let _lastSavedHash=null;
 function saveState(silent){
   try{
     const state={
-      _savedAt:new Date().toISOString(),
       MOCK_DATA,stage,
       events,evtNextId,
       scheduleRows,schNextId,
@@ -838,9 +994,17 @@ function saveState(silent){
       docStatus
       // docFiles는 첨부 파일 base64 용량 문제로 자동 저장 제외
     };
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+    const hash=JSON.stringify(state);
+    // 변경 감지: 동일 데이터면 저장/전송 생략
+    if(hash===_lastSavedHash&&localStorage.getItem(STORAGE_KEY)){return true}
+    _lastSavedHash=hash;
+    state._savedAt=new Date().toISOString();
+    const json=JSON.stringify(state);
+    localStorage.setItem(STORAGE_KEY,json);
+    // Firebase 실시간 동기화 (활성화된 경우)
+    if(firebaseRef)pushToFirebase();
     const el=document.getElementById('saveStatus');
-    if(el)el.textContent='💾 저장됨 '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+    if(el)el.textContent='💾 저장 '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
     if(!silent)toast('저장되었습니다');
     return true;
   }catch(e){
@@ -935,6 +1099,7 @@ function resetData(){
 }
 
 function rAdBak(){
+  // 로컬 저장 상태
   let savedInfo='저장된 데이터 없음';
   let sizeKB=0;
   try{
@@ -946,32 +1111,89 @@ function rAdBak(){
       savedInfo='마지막 저장: <strong>'+dt+'</strong><br>저장 데이터 크기: '+sizeKB+'KB';
     }
   }catch(e){}
-  document.getElementById('ad-bak').innerHTML=`<div class="cd">
-    <div class="cd-t">자동 저장 상태</div>
+  // Firebase 상태
+  const fbCfg=getFirebaseConfig();
+  const fbActive=!!fbCfg;
+  const fbConnNow=fbActive&&firebaseRef&&firebaseConnected;
+  const fbStatusTxt=!fbActive?'⚪ 미설정':(fbConnNow?'✅ 실시간 연결됨':'🔄 연결 시도 중...');
+  const fbColor=!fbActive?'var(--g400)':(fbConnNow?'var(--grn)':'var(--org)');
+
+  let fbCard;
+  if(fbActive){
+    fbCard=`<div class="cd">
+      <div class="cd-t">☁ 실시간 동기화 (Firebase) <span style="font-size:9.5px;font-weight:600;color:${fbColor};margin-left:6px">${fbStatusTxt}</span></div>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:10px;border-radius:6px;font-size:10px;line-height:1.6">
+        <div style="margin-bottom:4px"><strong>프로젝트:</strong> ${fbCfg.projectId||'(미상)'}</div>
+        <div style="margin-bottom:4px;word-break:break-all"><strong>DB URL:</strong> <span style="font-size:9px;color:var(--g500)">${fbCfg.databaseURL}</span></div>
+        <div id="bakSyncStatus" style="color:${fbColor};font-weight:600;font-size:10px;margin-top:4px">${fbStatusTxt}</div>
+      </div>
+      <div style="font-size:9.5px;color:var(--g500);line-height:1.5;margin-top:6px">
+        다른 PC·다른 사용자가 같은 URL로 접속하면 모든 변경사항이 <strong>자동으로 동기화</strong>됩니다.<br>
+        한 사용자가 데이터를 입력·수정·삭제하면 즉시 다른 사용자의 화면에도 반영됩니다.
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn bo" style="flex:1" onclick="rAdBak()">상태 갱신</button>
+        <button class="btn" style="flex:1;background:#fee2e2;color:var(--red);border:1px solid #fca5a5" onclick="disconnectFirebase()">동기화 해제</button>
+      </div>
+    </div>`;
+  }else{
+    fbCard=`<div class="cd">
+      <div class="cd-t">☁ 실시간 동기화 (Firebase) <span style="font-size:9.5px;font-weight:600;color:${fbColor};margin-left:6px">${fbStatusTxt}</span></div>
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:10px;font-size:10.5px;line-height:1.6;color:var(--g700);margin-bottom:8px">
+        <strong>다른 브라우저·다른 사용자에게 실시간으로 같은 데이터를 보이려면</strong><br>
+        무료 Firebase Realtime Database를 연결하세요. 한 사용자가 입력하면 다른 모든 사용자의 화면이 즉시 갱신됩니다.
+      </div>
+      <details style="font-size:10px;color:var(--g600);margin-bottom:8px;background:var(--g50);padding:6px 10px;border-radius:6px">
+        <summary style="cursor:pointer;font-weight:700;color:var(--pri);font-size:10.5px;padding:4px 0">📖 Firebase 설정 안내 (처음 한 번만 · 약 5분 소요)</summary>
+        <ol style="padding:8px 0 8px 18px;line-height:1.8;font-size:10px">
+          <li><a href="https://console.firebase.google.com/" target="_blank" style="color:var(--pri);font-weight:600">Firebase Console</a> 접속 → 구글 계정 로그인</li>
+          <li><strong>프로젝트 만들기</strong> → 프로젝트 이름 입력 (예: admin-reform) → 약관 동의 → 만들기 (분석 사용 안 함 가능)</li>
+          <li>좌측 메뉴 → <strong>빌드 → Realtime Database</strong> → 데이터베이스 만들기</li>
+          <li>위치: <code style="background:#f3f4f6;padding:1px 4px;border-radius:3px">asia-southeast1</code> 권장 → 보안 규칙: <strong>잠금 모드</strong> 선택 → 사용 설정</li>
+          <li>"규칙" 탭에서 아래로 변경 후 <strong>게시</strong>:<br>
+            <code style="display:block;background:#1f2937;color:#a7f3d0;padding:8px 10px;border-radius:4px;font-size:10px;margin:4px 0;font-family:monospace;line-height:1.4">{<br>  "rules": {<br>    ".read": true,<br>    ".write": true<br>  }<br>}</code>
+            <span style="color:var(--red);font-size:9.5px">⚠ 누구나 접근 가능 - 보안 강화는 별도 설정 필요</span>
+          </li>
+          <li>좌측 톱니바퀴 → <strong>프로젝트 설정</strong> → 일반 탭 하단 "내 앱"</li>
+          <li><strong>웹 &lt;/&gt;</strong> 아이콘 클릭 → 앱 닉네임 입력 → 앱 등록 (호스팅 설정은 건너뜀)</li>
+          <li>표시되는 <strong>const firebaseConfig = {...}</strong> 코드 블록을 <strong>전체 복사</strong></li>
+          <li>아래 입력란에 붙여넣고 <strong>"동기화 활성화"</strong> 클릭</li>
+        </ol>
+      </details>
+      <label style="font-size:10px;color:var(--g600);font-weight:600;display:block;margin-bottom:4px">Firebase 설정 (firebaseConfig 코드 또는 JSON)</label>
+      <textarea id="fbConfigInput" class="ei" rows="9" placeholder='예시:&#10;&#10;const firebaseConfig = {&#10;  apiKey: "AIza...",&#10;  authDomain: "your-project.firebaseapp.com",&#10;  databaseURL: "https://your-project-default-rtdb.firebaseio.com",&#10;  projectId: "your-project",&#10;  storageBucket: "your-project.appspot.com",&#10;  messagingSenderId: "...",&#10;  appId: "..."&#10;};' style="font-family:monospace;font-size:10px;width:100%"></textarea>
+      <button class="btn bp bk" style="margin-top:8px" onclick="saveFirebaseConfig()">☁ 동기화 활성화</button>
+    </div>`;
+  }
+
+  const localCard=`<div class="cd">
+    <div class="cd-t">자동 저장 상태 (브라우저 로컬)</div>
     <div style="background:var(--g50);border-radius:8px;padding:10px;font-size:10.5px">
       <div style="color:var(--g700);margin-bottom:6px;line-height:1.5">${savedInfo}</div>
       <div style="color:var(--g500);font-size:9.5px;line-height:1.6">
-        ✓ 입력한 모든 값(모의전환 일정·이슈·할일·진척단계 등)은 브라우저에 <strong>3초마다 자동 저장</strong>됩니다.<br>
-        ✓ HTML 파일을 GitHub 등에서 갱신하더라도 <strong>같은 URL로 접속하면 입력한 데이터가 유지</strong>됩니다.<br>
-        ⚠ 같은 브라우저(같은 PC·같은 도메인)에서만 유지되며, 다른 PC/사용자에게는 보이지 않습니다.<br>
-        ⚠ 산출물 첨부파일은 용량 문제로 자동 저장에서 제외됩니다.
+        ✓ 입력한 모든 값은 브라우저에 <strong>3초마다 자동 저장</strong>됩니다.<br>
+        ✓ HTML을 갱신해도 같은 URL이면 데이터가 유지됩니다.<br>
+        ⚠ 같은 브라우저에서만 유지 (다른 PC/사용자 공유는 위의 실시간 동기화 사용).
       </div>
     </div>
-  </div>
-  <div class="cd">
-    <div class="cd-t">백업 파일 (다른 PC·사용자와 공유)</div>
+  </div>`;
+
+  const backupCard=`<div class="cd">
+    <div class="cd-t">백업 파일 (JSON 다운로드/복원)</div>
     <div style="display:flex;flex-direction:column;gap:8px">
       <button class="btn bp bk" onclick="exportData()">💾 백업 파일 다운로드</button>
-      <div style="font-size:9.5px;color:var(--g500);line-height:1.4;margin-top:-4px">현재 데이터를 JSON 파일로 내려받습니다. 다른 사용자에게 공유하거나 백업용으로 보관할 수 있습니다.</div>
       <label class="btn bt bk" style="cursor:pointer;position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center">📂 백업 파일 복원<input type="file" accept=".json,application/json" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="importData(this)"></label>
-      <div style="font-size:9.5px;color:var(--g500);line-height:1.4;margin-top:-4px">백업한 JSON 파일을 업로드하면 현재 데이터를 덮어쓰고 복원합니다.</div>
     </div>
-  </div>
-  <div class="cd">
+    <div style="font-size:9.5px;color:var(--g500);line-height:1.4;margin-top:6px">현재 데이터를 JSON 파일로 내려받거나, 백업 파일에서 복원합니다.</div>
+  </div>`;
+
+  const resetCard=`<div class="cd">
     <div class="cd-t" style="color:var(--red)">데이터 초기화 (주의)</div>
     <button class="btn bk" style="background:#fee2e2;color:var(--red);border:1px solid #fca5a5" onclick="resetData()">🔄 모든 입력 데이터 초기화</button>
-    <div style="font-size:9.5px;color:var(--g500);line-height:1.4;margin-top:6px">자동 저장된 데이터를 모두 지우고 HTML 내장 샘플 값으로 돌아갑니다. 백업이 없다면 복구할 수 없습니다.</div>
+    <div style="font-size:9.5px;color:var(--g500);line-height:1.4;margin-top:6px">자동 저장된 데이터를 모두 지우고 HTML 내장 샘플 값으로 돌아갑니다.</div>
   </div>`;
+
+  document.getElementById('ad-bak').innerHTML=fbCard+localCard+backupCard+resetCard;
 }
 
 function initApp(){
@@ -980,6 +1202,7 @@ function initApp(){
   updatePubNotice();
   saveState(true); // 첫 저장 (시각 표시 갱신)
   go('dash');
+  initFirebase(); // Firebase 설정이 있으면 실시간 동기화 시작
 }
 
 // 자동 저장 트리거
